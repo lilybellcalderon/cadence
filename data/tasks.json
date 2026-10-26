@@ -1,0 +1,263 @@
+{
+  "_meta": {
+    "dataset": "tasks",
+    "version": 1,
+    "description": "The request repository: work submitted for assignment. 'area' references expertise_areas[].id. 'attachments[].path' is relative to the data/ folder. 'created_minutes_ago' is converted to an absolute created_at when the seed is loaded, so 'time since created' is meaningful on every fresh start. The 'sim' block is NOT business data: it only scripts how the simulated routing engine and contributors behave so each use case can be demonstrated deterministically. Real submissions omit 'sim' and get the engine's default behaviour (5-20s latency, 20% never return).",
+    "status_values_at_seed": ["draft"],
+    "estimated_effort_hours": "PROVISIONAL requester estimate of work needed. Used for capacity only until the assigned contributor confirms their own estimate (see engine_config.estimates); unconfirmed use is buffered x1.25 and labelled as such.",
+    "priority_values": ["critical", "high", "medium", "low"],
+    "attachment_kinds": ["requirements", "acceptance_criteria", "sample_data", "reference"],
+    "sim_schema": {
+      "routing": "normal | hang | late_return | random   (random = engine default: 20% hang). hang = never returns. late_return = returns after sim.late_return_seconds, long after an operator would reasonably have intervened.",
+      "forced_pick": "Optional contributor id the engine selects when routing returns (must be eligible).",
+      "contributor_response": "accept | decline | fail   (what happens once the assignment is offered). fail = assignment breaks before work begins (e.g. contributor goes offline).",
+      "late_return_seconds": "Only used when routing = late_return.",
+      "estimate": "Optional scripted contributor estimate behaviour once assigned: {mode: with_accept | after_reminder | never, after_reminders (for after_reminder), hours_total, confidence: high|medium|low, basis: similar_work|spec_review|rough_guess}. Default if omitted: with_accept using the requester estimate.",
+      "status_check": "Optional scripted reply to a contributor status check-in: {reply: on_track | at_risk | blocked | no_response, progress_percent, hours_remaining, note}. Only used once the task is accepted."
+    }
+  },
+  "tasks": [
+    {
+      "id": "T-1001",
+      "title": "Explain Q3 travel & entertainment budget overrun",
+      "area": "finance",
+      "min_level": 2,
+      "priority": "high",
+      "status": "draft",
+      "requester": { "name": "Grace Holloway", "team": "Sales Finance" },
+      "user_story": {
+        "as_a": "sales finance partner",
+        "i_want": "a variance analysis of Q3 travel and entertainment spend against budget, split by cost centre",
+        "so_that": "I can explain the overrun to the VP of Sales before the quarterly business review"
+      },
+      "description": "T&E spend is running well above budget for Q3 but the finance system only shows totals by account. We need the overrun decomposed into timing differences (e.g. Q4 conferences booked early) versus genuine overspend, with a short commentary per cost centre.",
+      "created_minutes_ago": 95,
+      "due_in_hours": 48,
+      "estimated_effort_hours": 16,
+      "tags": ["quarterly-review", "variance"],
+      "attachments": [
+        { "id": "A-1001-1", "kind": "requirements", "filename": "requirements.md", "path": "attachments/T-1001/requirements.md", "description": "Scope, inputs, and expected deliverable for the variance analysis." },
+        { "id": "A-1001-2", "kind": "acceptance_criteria", "filename": "acceptance_criteria.md", "path": "attachments/T-1001/acceptance_criteria.md", "description": "User acceptance criteria the requester will check." },
+        { "id": "A-1001-3", "kind": "sample_data", "filename": "te_spend_sample.csv", "path": "attachments/T-1001/te_spend_sample.csv", "description": "Sample extract of Q3 T&E ledger lines (synthetic)." }
+      ],
+      "sim": { "scenario": "routine", "routing": "normal", "contributor_response": "accept", "status_check": { "reply": "on_track", "progress_percent": 60, "hours_remaining": 6 }, "estimate": { "mode": "with_accept", "hours_total": 14, "confidence": "high", "basis": "similar_work" } }
+    },
+    {
+      "id": "T-1002",
+      "title": "Audit patient intake forms for missing mandatory fields",
+      "area": "healthcare",
+      "min_level": 2,
+      "priority": "critical",
+      "status": "draft",
+      "requester": { "name": "Dr. Imani Clarke", "team": "Outpatient Services" },
+      "user_story": {
+        "as_a": "outpatient services director",
+        "i_want": "an audit of last month's intake forms listing every record with missing or implausible mandatory fields",
+        "so_that": "we can correct the records before the regulator's data submission deadline"
+      },
+      "description": "A recent system change may have stopped enforcing mandatory fields on the intake form. The regulator submission is due imminently, so this is the highest-priority request in the queue. Records contain no real patient data in this exercise (synthetic).",
+      "created_minutes_ago": 42,
+      "due_in_hours": 48,
+      "estimated_effort_hours": 12,
+      "tags": ["regulatory-deadline", "data-quality"],
+      "attachments": [
+        { "id": "A-1002-1", "kind": "requirements", "filename": "requirements.md", "path": "attachments/T-1002/requirements.md", "description": "Fields to check, plausibility rules and output format." },
+        { "id": "A-1002-2", "kind": "acceptance_criteria", "filename": "acceptance_criteria.md", "path": "attachments/T-1002/acceptance_criteria.md", "description": "User acceptance criteria for the audit report." },
+        { "id": "A-1002-3", "kind": "sample_data", "filename": "intake_sample.csv", "path": "attachments/T-1002/intake_sample.csv", "description": "Synthetic intake records, including deliberate defects." }
+      ],
+      "sim": { "scenario": "unresolved_routing", "routing": "hang", "contributor_response": "accept", "estimate": { "mode": "with_accept", "hours_total": 12, "confidence": "medium", "basis": "spec_review" } }
+    },
+    {
+      "id": "T-1003",
+      "title": "90-day retention by signup cohort and Q2 drop explanation",
+      "area": "data_analysis",
+      "min_level": 3,
+      "priority": "high",
+      "status": "draft",
+      "requester": { "name": "Oscar Fenwick", "team": "Growth" },
+      "user_story": {
+        "as_a": "growth lead",
+        "i_want": "90-day retention curves by monthly signup cohort with an explanation of why the Q2 cohorts dropped",
+        "so_that": "I can decide whether to roll back the onboarding change shipped in April"
+      },
+      "description": "Retention for April and May signups looks materially worse. We need cohort curves, a check that the metric definition did not change, and a ranked list of plausible drivers with the evidence for each.",
+      "created_minutes_ago": 30,
+      "due_in_hours": 96,
+      "estimated_effort_hours": 24,
+      "tags": ["retention", "onboarding"],
+      "attachments": [
+        { "id": "A-1003-1", "kind": "requirements", "filename": "requirements.md", "path": "attachments/T-1003/requirements.md", "description": "Cohort definition, data sources and deliverable." },
+        { "id": "A-1003-2", "kind": "acceptance_criteria", "filename": "acceptance_criteria.md", "path": "attachments/T-1003/acceptance_criteria.md", "description": "User acceptance criteria." }
+      ],
+      "sim": { "scenario": "intervention_then_late_return", "routing": "late_return", "late_return_seconds": 120, "contributor_response": "accept", "status_check": { "reply": "at_risk", "progress_percent": 30, "hours_remaining": 30, "note": "Event tracking gap in May needs data-engineering help." }, "estimate": { "mode": "after_reminder", "after_reminders": 1, "hours_total": 26, "confidence": "medium", "basis": "spec_review" } }
+    },
+    {
+      "id": "T-1004",
+      "title": "Map the customer returns process end-to-end",
+      "area": "operations",
+      "min_level": 2,
+      "priority": "medium",
+      "status": "draft",
+      "requester": { "name": "Nadia Rahimi", "team": "Customer Experience" },
+      "user_story": {
+        "as_a": "customer experience manager",
+        "i_want": "an as-is process map of returns from customer request to refund, with wait times at each handoff",
+        "so_that": "we can find out why refunds take 11 days on average"
+      },
+      "description": "Customers complain refunds are slow. Three teams touch a return (support, warehouse, finance) and nobody has the whole picture. Produce an as-is map with evidence from at least 20 recent returns and identify the top three delay points.",
+      "created_minutes_ago": 180,
+      "due_in_hours": 120,
+      "estimated_effort_hours": 30,
+      "tags": ["process-improvement", "customer-experience"],
+      "attachments": [
+        { "id": "A-1004-1", "kind": "requirements", "filename": "requirements.md", "path": "attachments/T-1004/requirements.md", "description": "Scope and method for the process mapping." },
+        { "id": "A-1004-2", "kind": "acceptance_criteria", "filename": "acceptance_criteria.md", "path": "attachments/T-1004/acceptance_criteria.md", "description": "User acceptance criteria." }
+      ],
+      "sim": { "scenario": "declined", "routing": "normal", "forced_pick": "C-04", "contributor_response": "decline" }
+    },
+    {
+      "id": "T-1005",
+      "title": "Compare data-retention policy with GDPR storage-limitation rules",
+      "area": "legal_compliance",
+      "min_level": 4,
+      "priority": "medium",
+      "status": "draft",
+      "requester": { "name": "Victor Almeida", "team": "Security & Privacy Office" },
+      "user_story": {
+        "as_a": "privacy officer",
+        "i_want": "an expert gap assessment of our retention schedule against GDPR Article 5(1)(e) and the regulator's guidance",
+        "so_that": "we can sign off the schedule ahead of an external audit"
+      },
+      "description": "The audit is externally reviewed, so the requester has asked for Expert-level (4) review. No contributor currently holds Expert level in this area, so the engine is expected to report that no match was found, forcing the operator to decide: lower the bar, split the task, or source outside help.",
+      "created_minutes_ago": 240,
+      "due_in_hours": 240,
+      "estimated_effort_hours": 30,
+      "tags": ["gdpr", "external-audit"],
+      "attachments": [
+        { "id": "A-1005-1", "kind": "requirements", "filename": "requirements.md", "path": "attachments/T-1005/requirements.md", "description": "Policy under review and expected assessment structure." },
+        { "id": "A-1005-2", "kind": "acceptance_criteria", "filename": "acceptance_criteria.md", "path": "attachments/T-1005/acceptance_criteria.md", "description": "User acceptance criteria." }
+      ],
+      "sim": { "scenario": "no_match", "routing": "normal", "contributor_response": "accept" }
+    },
+    {
+      "id": "T-1006",
+      "title": "Write the new-hire onboarding guide for the support team",
+      "area": "technical_writing",
+      "min_level": 2,
+      "priority": "low",
+      "status": "draft",
+      "requester": { "name": "Lena Brandt", "team": "Customer Support" },
+      "user_story": {
+        "as_a": "support team lead",
+        "i_want": "a first-week onboarding guide covering tools, queues and escalation paths",
+        "so_that": "new hires can handle tier-1 tickets unaided by day five"
+      },
+      "description": "Onboarding currently relies on shadowing and a stale wiki page. The guide should be task-oriented, tested with the next new hire, and short enough to read on day one.",
+      "created_minutes_ago": 1500,
+      "due_in_hours": 336,
+      "estimated_effort_hours": 20,
+      "tags": ["onboarding", "documentation"],
+      "attachments": [
+        { "id": "A-1006-1", "kind": "requirements", "filename": "requirements.md", "path": "attachments/T-1006/requirements.md", "description": "Audience, structure and source material." },
+        { "id": "A-1006-2", "kind": "acceptance_criteria", "filename": "acceptance_criteria.md", "path": "attachments/T-1006/acceptance_criteria.md", "description": "User acceptance criteria." }
+      ],
+      "sim": { "scenario": "routine", "routing": "normal", "contributor_response": "accept", "status_check": { "reply": "no_response" }, "estimate": { "mode": "never" } }
+    },
+    {
+      "id": "T-1007",
+      "title": "Reconcile three months of vendor invoices against the AP ledger",
+      "area": "finance",
+      "min_level": 3,
+      "priority": "medium",
+      "status": "draft",
+      "requester": { "name": "Tobias Wren", "team": "Controllership" },
+      "user_story": {
+        "as_a": "assistant controller",
+        "i_want": "a reconciliation of vendor invoices to the AP ledger for the last three months with every unmatched item classified",
+        "so_that": "I can clear the reconciling items before the audit fieldwork starts"
+      },
+      "description": "Differences have accumulated between the vendor statements and the AP ledger. Classify each difference as timing, duplicate, pricing, or unknown, and propose the adjusting entries.",
+      "created_minutes_ago": 600,
+      "due_in_hours": 96,
+      "estimated_effort_hours": 24,
+      "tags": ["reconciliation", "audit-prep"],
+      "attachments": [
+        { "id": "A-1007-1", "kind": "requirements", "filename": "requirements.md", "path": "attachments/T-1007/requirements.md", "description": "Reconciliation scope and classification scheme." },
+        { "id": "A-1007-2", "kind": "acceptance_criteria", "filename": "acceptance_criteria.md", "path": "attachments/T-1007/acceptance_criteria.md", "description": "User acceptance criteria." }
+      ],
+      "sim": { "scenario": "failed_assignment", "routing": "normal", "forced_pick": "C-02", "contributor_response": "fail" }
+    },
+    {
+      "id": "T-1008",
+      "title": "Post-incident review for last week's shipping delay",
+      "area": "operations",
+      "min_level": 3,
+      "priority": "high",
+      "status": "draft",
+      "requester": { "name": "Rhys Donovan", "team": "Logistics" },
+      "user_story": {
+        "as_a": "logistics director",
+        "i_want": "a blameless post-incident review with a timeline, root cause and corrective actions for the carrier outage that delayed 1,400 orders",
+        "so_that": "we can prevent a repeat and report back to affected customers"
+      },
+      "description": "A carrier API outage and a missing fallback rule combined to hold orders for up to 36 hours. The review needs a verified timeline, contributing factors, and owners and dates for each corrective action.",
+      "created_minutes_ago": 75,
+      "due_in_hours": 120,
+      "estimated_effort_hours": 16,
+      "tags": ["incident", "post-incident-review"],
+      "attachments": [
+        { "id": "A-1008-1", "kind": "requirements", "filename": "requirements.md", "path": "attachments/T-1008/requirements.md", "description": "Review scope, inputs and structure." },
+        { "id": "A-1008-2", "kind": "acceptance_criteria", "filename": "acceptance_criteria.md", "path": "attachments/T-1008/acceptance_criteria.md", "description": "User acceptance criteria." }
+      ],
+      "sim": { "scenario": "default_engine", "routing": "random", "contributor_response": "accept", "status_check": { "reply": "blocked", "progress_percent": 40, "hours_remaining": 10, "note": "Waiting for the carrier incident report." }, "estimate": { "mode": "with_accept", "hours_total": 28, "confidence": "low", "basis": "rough_guess" } }
+    },
+    {
+      "id": "T-1009",
+      "title": "Define 'active customer' and document edge cases",
+      "area": "data_analysis",
+      "min_level": 2,
+      "priority": "low",
+      "status": "draft",
+      "requester": { "name": "Ingrid Solheim", "team": "Business Intelligence" },
+      "user_story": {
+        "as_a": "BI manager",
+        "i_want": "one agreed, documented definition of 'active customer' with the edge cases written down",
+        "so_that": "Sales, Finance and Product stop reporting three different numbers"
+      },
+      "description": "The three teams currently count active customers differently (any login, any paid invoice, any order). Propose a single definition with numerator, denominator, grain and exclusions, and quantify how much each alternative differs.",
+      "created_minutes_ago": 2900,
+      "due_in_hours": 168,
+      "estimated_effort_hours": 8,
+      "tags": ["metrics", "governance"],
+      "attachments": [
+        { "id": "A-1009-1", "kind": "requirements", "filename": "requirements.md", "path": "attachments/T-1009/requirements.md", "description": "Definition format and the three existing counts." },
+        { "id": "A-1009-2", "kind": "acceptance_criteria", "filename": "acceptance_criteria.md", "path": "attachments/T-1009/acceptance_criteria.md", "description": "User acceptance criteria." }
+      ],
+      "sim": { "scenario": "default_engine", "routing": "random", "contributor_response": "accept" }
+    },
+    {
+      "id": "T-1010",
+      "title": "Map local diagnosis list to ICD-10-CM",
+      "area": "healthcare",
+      "min_level": 3,
+      "priority": "medium",
+      "status": "draft",
+      "requester": { "name": "Dr. Imani Clarke", "team": "Outpatient Services" },
+      "user_story": {
+        "as_a": "outpatient services director",
+        "i_want": "our 240 locally-defined diagnosis labels mapped to ICD-10-CM codes with a confidence rating for each",
+        "so_that": "we can retire the legacy list and report using the standard code set"
+      },
+      "description": "Only one contributor is eligible at this level (C-03), and C-03 can hold just one task at a time. If C-03 already holds another task (e.g. the operator manually assigns T-1002 to C-03) this task exercises the capacity limit: the router must not over-assign, and the operator should see why this task is waiting or unmatched.",
+      "created_minutes_ago": 20,
+      "due_in_hours": 200,
+      "estimated_effort_hours": 30,
+      "tags": ["terminology", "standards"],
+      "attachments": [
+        { "id": "A-1010-1", "kind": "requirements", "filename": "requirements.md", "path": "attachments/T-1010/requirements.md", "description": "Mapping approach, confidence scale and output format." },
+        { "id": "A-1010-2", "kind": "acceptance_criteria", "filename": "acceptance_criteria.md", "path": "attachments/T-1010/acceptance_criteria.md", "description": "User acceptance criteria." }
+      ],
+      "sim": { "scenario": "capacity_contention", "routing": "normal", "forced_pick": "C-03", "contributor_response": "accept" }
+    }
+  ]
+}

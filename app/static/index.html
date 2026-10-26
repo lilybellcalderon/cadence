@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cadence - Operator Console</title>
+<style>
+  :root { --bg:#f5f6f8; --card:#fff; --ink:#1d2433; --muted:#667085; --line:#e3e6ec; --brand:#1f3864; --teal:#00726b;
+          --crit:#b42318; --high:#c4570a; --norm:#175cd3; --low:#667085; --ok:#2e7d32; --warn:#b54708; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; color:var(--ink); background:var(--bg); }
+  header { background:var(--brand); color:#fff; padding:10px 18px; display:flex; align-items:center; gap:18px; flex-wrap:wrap; }
+  header h1 { font-size:17px; margin:0; font-weight:650; }
+  nav { display:flex; gap:4px; flex:1; }
+  nav button { background:transparent; color:#cfd8ee; border:0; padding:7px 13px; border-radius:6px; cursor:pointer; font:inherit; }
+  nav button.active { background:#fff; color:var(--brand); font-weight:600; }
+  nav .badge { background:var(--crit); color:#fff; border-radius:9px; padding:0 6px; font-size:11px; margin-left:5px; }
+  header .who { display:flex; gap:8px; align-items:center; font-size:12px; color:#cfd8ee; }
+  header input { width:110px; padding:4px 7px; border-radius:5px; border:1px solid #5b73a6; background:#2a4780; color:#fff; }
+  #banner > div { padding:9px 18px; display:flex; gap:12px; align-items:center; font-weight:550; }
+  #banner .critical { background:#fee4e2; color:var(--crit); border-bottom:1px solid #fda29b; }
+  #banner .high { background:#fff1e0; color:var(--high); border-bottom:1px solid #f9c78b; }
+  #banner button { margin-left:auto; }
+  main { padding:16px 18px 60px; max-width:1500px; margin:0 auto; }
+  h2 { font-size:15px; margin:18px 0 8px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:12px 14px; margin-bottom:10px; }
+  table { width:100%; border-collapse:collapse; background:var(--card); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  th { text-align:left; font-size:12px; color:var(--muted); font-weight:600; padding:8px 10px; border-bottom:1px solid var(--line); background:#fafbfc; white-space:nowrap; }
+  td { padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+  tr.row { cursor:pointer; } tr.row:hover td { background:#f8faff; }
+  .pill { display:inline-block; padding:1px 8px; border-radius:10px; font-size:12px; font-weight:600; white-space:nowrap; }
+  .p-critical { background:#fee4e2; color:var(--crit); } .p-high { background:#fff1e0; color:var(--high); }
+  .p-medium { background:#e0eaff; color:var(--norm); } .p-low { background:#eceff3; color:var(--low); }
+  .s-draft { background:#eceff3; color:#475467; } .s-submitted,.s-routing { background:#e0eaff; color:var(--norm); }
+  .s-queued,.s-unmatched { background:#fff1e0; color:var(--high); } .s-declined,.s-failed,.s-cancelled { background:#fee4e2; color:var(--crit); }
+  .s-offered { background:#e8f3ff; color:var(--norm); } .s-accepted,.s-in_progress { background:#e3f4e6; color:var(--ok); } .s-completed { background:#d1e9d4; color:#1b5e20; }
+  .h-complete { color:var(--ok); } .h-awaiting_estimate { color:var(--muted); } .h-overdue_estimate,.h-stale { color:var(--high); } .h-at_risk { color:var(--crit); }
+  .flag { display:inline-block; margin:2px 3px 0 0; padding:0 6px; border-radius:4px; background:#fff1e0; color:var(--warn); font-size:11px; font-weight:600; }
+  .flag.red { background:#fee4e2; color:var(--crit); }
+  .muted { color:var(--muted); } .small { font-size:12px; } .mono { font-family: ui-monospace, Consolas, monospace; font-size:12px; }
+  button, select, input, textarea { font:inherit; }
+  button.btn { padding:5px 11px; border-radius:6px; border:1px solid #c5ccd8; background:#fff; cursor:pointer; }
+  button.btn:hover { background:#f2f4f8; } button.primary { background:var(--brand); color:#fff; border-color:var(--brand); } button.primary:hover { background:#2a4a82; }
+  button.danger { color:var(--crit); border-color:#f3b2ac; } button.sm { padding:2px 8px; font-size:12px; }
+  input, select, textarea { padding:5px 8px; border:1px solid #c5ccd8; border-radius:6px; background:#fff; }
+  textarea { width:100%; min-height:70px; }
+  label.f { display:block; font-size:12px; color:var(--muted); margin:8px 0 2px; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; } .grid3 { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+  .chips { display:flex; gap:6px; margin:4px 0 12px; flex-wrap:wrap; }
+  .chip { padding:3px 11px; border:1px solid #c5ccd8; border-radius:14px; background:#fff; cursor:pointer; font-size:12px; }
+  .chip.on { background:var(--brand); color:#fff; border-color:var(--brand); }
+  .sev { font-weight:700; font-size:11px; padding:1px 7px; border-radius:4px; text-transform:uppercase; }
+  .sev-critical { background:var(--crit); color:#fff; } .sev-high { background:var(--high); color:#fff; } .sev-normal { background:var(--norm); color:#fff; } .sev-low { background:#98a2b3; color:#fff; }
+  .q h4 { margin:0 0 4px; font-size:14px; } .q .opts { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; }
+  .q .opts button.sel { background:var(--brand); color:#fff; border-color:var(--brand); }
+  .q .ctx { background:#f8f9fb; border-left:3px solid #c5ccd8; padding:6px 10px; font-size:12px; color:#475467; margin:6px 0; }
+  .bar { height:8px; background:#e9ecf1; border-radius:4px; overflow:hidden; min-width:90px; } .bar > i { display:block; height:100%; background:var(--teal); } .bar.over > i { background:var(--crit); }
+  #drawer { position:fixed; top:0; right:0; width:min(760px,96vw); height:100vh; background:#fff; border-left:1px solid var(--line); box-shadow:-8px 0 24px rgba(16,24,40,.12);
+            transform:translateX(105%); transition:transform .18s; overflow-y:auto; z-index:20; } #drawer.open { transform:none; }
+  #drawer .head { position:sticky; top:0; background:#fff; border-bottom:1px solid var(--line); padding:12px 16px; z-index:2; display:flex; gap:10px; align-items:flex-start; }
+  #drawer .body { padding:4px 16px 60px; }
+  .tabs { display:flex; gap:2px; border-bottom:1px solid var(--line); margin:10px 0; } .tabs button { background:none; border:0; padding:6px 12px; cursor:pointer; border-bottom:2px solid transparent; font:inherit; color:var(--muted); }
+  .tabs button.on { color:var(--brand); border-color:var(--brand); font-weight:600; }
+  .tl { border-left:2px solid var(--line); margin-left:6px; } .tl .ev { padding:3px 0 7px 12px; position:relative; } .tl .ev::before { content:""; position:absolute; left:-6px; top:9px; width:9px; height:9px; border-radius:50%; background:#98a2b3; }
+  .tl .ev.alert::before { background:var(--high); } .tl .ev.op::before { background:var(--brand); } .tl .ev.ok::before { background:var(--ok); }
+  pre.doc { background:#f8f9fb; border:1px solid var(--line); border-radius:6px; padding:10px; white-space:pre-wrap; max-height:340px; overflow:auto; font-size:12px; }
+  #toast { position:fixed; bottom:18px; left:50%; transform:translateX(-50%); padding:9px 16px; border-radius:8px; color:#fff; display:none; z-index:50; max-width:80vw; }
+  #toast.ok { background:#2e7d32; } #toast.err { background:var(--crit); }
+  .kpi { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px; } .kpi > div { background:#fff; border:1px solid var(--line); border-radius:8px; padding:8px 14px; min-width:150px; } .kpi b { font-size:20px; display:block; }
+  .backdrop { position:fixed; inset:0; background:rgba(16,24,40,.25); z-index:15; display:none; } .backdrop.on { display:block; }
+  @media (max-width: 900px) { .grid2,.grid3 { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Cadence &middot; Operator Console</h1>
+  <nav id="nav"></nav>
+  <div class="who"><span id="clock"></span><label>Operator <input id="op" value="operator"></label></div>
+</header>
+<div id="banner"></div>
+<main id="main"></main>
+<div class="backdrop" id="backdrop"></div>
+<aside id="drawer"></aside>
+<div id="toast"></div>
+
+<script>
+"use strict";
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const state = { view: "board", meta: null, board: null, inbox: null, contributors: null, report: null, filter: "all", taskId: null, detail: null, dtab: "overview",
+                cid: null, cinbox: null, drafts: {}, hash: {}, reportDate: new Date().toISOString().slice(0, 10), att: null };
+const VIEWS = [["board", "Board"], ["inbox", "Alerts & Questions"], ["contributors", "Contributors"], ["report", "Daily report"], ["new", "New task"]];
+
+// ---------------------------------------------------------------- plumbing
+const operator = () => ($("#op").value || "operator").trim();
+async function api(method, url, body) {
+  const r = await fetch(url, { method, headers: { "Content-Type": "application/json", "X-Operator": operator() }, body: body ? JSON.stringify(body) : undefined });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || r.statusText);
+  return j;
+}
+function toast(msg, ok = true) { const t = $("#toast"); t.textContent = msg; t.className = ok ? "ok" : "err"; t.style.display = "block"; clearTimeout(toast.h); toast.h = setTimeout(() => t.style.display = "none", ok ? 3200 : 7000); }
+async function act(fn, okMsg) { try { const r = await fn(); if (okMsg) toast(typeof okMsg === "function" ? okMsg(r) : okMsg); await refresh(true); return r; } catch (e) { toast(e.message, false); } }
+const typing = el => { const a = document.activeElement; return a && el.contains(a) && ["INPUT", "TEXTAREA", "SELECT"].includes(a.tagName); };
+let lastPress = 0;                         // never rebuild the page under a click: skip renders for a moment after any mouse press
+document.addEventListener("mousedown", () => lastPress = Date.now(), true);
+function setHtml(el, html, key) { if (state.hash[key] === html) return; if (typing(el) || Date.now() - lastPress < 800) return; state.hash[key] = html; el.innerHTML = html; tickAges(); }
+const fmtT = iso => iso ? new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "";
+const fmtDT = iso => iso ? new Date(iso).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "-";
+function ageText(min) { if (min < 60) return `${min}m`; if (min < 1440) return `${Math.floor(min / 60)}h ${min % 60}m`; return `${Math.floor(min / 1440)}d ${Math.floor(min % 1440 / 60)}h`; }
+const age = iso => `<span class="age" data-t="${esc(iso)}"></span>`;
+const prio = p => `<span class="pill p-${p}">${p}</span>`;
+const stat = s => `<span class="pill s-${s}">${s.replace("_", " ")}</span>`;
+const sev = s => `<span class="sev sev-${s}">${s}</span>`;
+const areaName = id => (state.meta?.areas.find(a => a.id === id) || { name: id }).name;
+
+// ---------------------------------------------------------------- data
+async function refresh(force) {
+  try {
+    if (!state.meta) state.meta = await api("GET", "/api/meta");
+    const [board, inbox] = await Promise.all([api("GET", "/api/board"), api("GET", "/api/inbox")]);
+    state.board = board; state.inbox = inbox;
+    if (state.view === "contributors" || force && state.cid) state.contributors = (await api("GET", "/api/contributors")).contributors;
+    if (state.cid) state.cinbox = await api("GET", `/api/contributors/${state.cid}/inbox`);
+    if (state.taskId) state.detail = await api("GET", `/api/tasks/${state.taskId}`);
+    if (!state.contributors) state.contributors = (await api("GET", "/api/contributors")).contributors;
+    render();
+    $("#clock").textContent = "server time " + fmtT(board.now);
+  } catch (e) { $("#clock").textContent = "offline: " + e.message; }
+}
+
+// ---------------------------------------------------------------- shell
+function renderNav() {
+  const c = state.board?.counts || {};
+  setHtml($("#nav"), VIEWS.map(([k, label]) => `<button data-view="${k}" class="${state.view === k ? "active" : ""}">${label}${k === "inbox" && (c.open_questions + c.open_alerts) ? `<span class="badge">${c.open_questions + c.open_alerts}</span>` : ""}</button>`).join(""), "nav");
+}
+function renderBanner() {
+  const urgent = (state.inbox?.alerts || []).filter(a => ["critical", "high"].includes(a.severity) && a.status === "open");
+  const shown = urgent.slice(0, 2), more = urgent.length - shown.length;       // capped so the page does not jump under the cursor
+  setHtml($("#banner"), shown.map(a => `<div class="${a.severity}">${sev(a.severity)} <span>${esc(a.task_id || "")} &middot; ${esc(a.message)}</span><button class="btn sm" data-ack="${a.id}">Acknowledge</button><button class="btn sm" data-open="${esc(a.task_id)}">Open task</button></div>`).join("")
+    + (more > 0 ? `<div class="high"><span>+${more} more critical/high alert${more > 1 ? "s" : ""} waiting</span><button class="btn sm" data-view="inbox">View all</button></div>` : ""), "banner");
+}
+function render() {
+  renderNav(); renderBanner();
+  const m = $("#main");
+  if (state.view === "board") setHtml(m, boardHtml(), "board");
+  else if (state.view === "inbox") setHtml(m, inboxHtml(), "inbox");
+  else if (state.view === "contributors") setHtml(m, contributorsHtml(), "contributors");
+  else if (state.view === "report") { if (!state.hash.report || state.hash.report === "stale") {} setHtml(m, reportHtml(), "report"); }
+  else if (state.view === "new") { if (!m.dataset.form) { m.innerHTML = newHtml(); m.dataset.form = "1"; } }
+  if (state.view !== "new") delete m.dataset.form;
+  if (state.taskId) renderDrawer();
+  tickAges();
+}
+function tickAges() {
+  document.querySelectorAll(".age").forEach(el => { el.textContent = ageText(Math.max(0, Math.floor((Date.now() - new Date(el.dataset.t)) / 60000))); });
+  document.querySelectorAll(".secs").forEach(el => { el.textContent = Math.max(0, Math.floor((Date.now() - new Date(el.dataset.t)) / 1000)); });
+}
+
+// ---------------------------------------------------------------- board
+function needsAttention(t) { return t.open_alerts || t.open_questions || t.flags.length || ["unmatched", "queued", "declined", "failed"].includes(t.status); }
+function boardHtml() {
+  const all = state.board.tasks;
+  const filters = { all: () => true, attention: needsAttention, active: t => ["submitted", "routing", "queued", "offered", "accepted", "in_progress", "unmatched", "declined", "failed"].includes(t.status),
+                    draft: t => t.status === "draft", done: t => ["completed", "cancelled"].includes(t.status) };
+  const counts = Object.fromEntries(Object.entries(filters).map(([k, f]) => [k, all.filter(f).length]));
+  const rows = all.filter(filters[state.filter]).sort((a, b) => ({ critical: 4, high: 3, medium: 2, low: 1 }[b.priority] - { critical: 4, high: 3, medium: 2, low: 1 }[a.priority]) || a.id.localeCompare(b.id));
+  const label = { all: "All", attention: "Needs attention", active: "Active", draft: "Drafts", done: "Done" };
+  return `<div class="chips">${Object.keys(filters).map(k => `<span class="chip ${state.filter === k ? "on" : ""}" data-filter="${k}">${label[k]} (${counts[k]})</span>`).join("")}
+    <span style="margin-left:auto"><button class="btn sm" data-act="submit-drafts">Submit all drafts</button></span></div>
+  <table><thead><tr><th>Task</th><th>Area</th><th>Priority</th><th>State</th><th>Age</th><th>Assignee</th><th>Plan</th><th>Estimate (req &rarr; confirmed)</th><th>Due</th><th></th></tr></thead><tbody>
+  ${rows.map(t => `<tr class="row" data-open="${t.id}">
+    <td><b>${t.id}</b> ${t.parent_task_id ? `<span class="muted small">(split from ${t.parent_task_id})</span>` : ""}<div>${esc(t.title)}</div>
+        ${t.open_alerts ? `<span class="sev sev-${t.worst_alert}">${t.open_alerts} alert${t.open_alerts > 1 ? "s" : ""}</span> ` : ""}${t.open_questions ? `<span class="flag red">${t.open_questions} question${t.open_questions > 1 ? "s" : ""} for you</span>` : ""}</td>
+    <td>${esc(areaName(t.area_id))}<div class="muted small">min level ${t.min_level}</div></td>
+    <td>${prio(t.priority)}</td>
+    <td>${stat(t.status)}${t.routing ? `<div class="small muted">request pending <span class="secs" data-t="${esc(t.routing.started_at)}"></span>s</div>` : ""}<div>${t.flags.map(f => `<span class="flag ${/stuck|overdue|risk/.test(f) ? "red" : ""}">${esc(f)}</span>`).join("")}</div></td>
+    <td>${age(t.created_at)}</td>
+    <td>${esc(t.assignee || "-")}${t.assignment_status && t.assignee ? `<div class="muted small">${t.assignment_status.replace("_", " ")}</div>` : ""}</td>
+    <td>${t.plan_health ? `<span class="h-${t.plan_health}">${t.plan_health.replace("_", " ")}</span>` : "-"}</td>
+    <td>${t.requester_hours}h${t.confirmed_hours ? ` &rarr; <b>${t.confirmed_hours.total}h</b> <span class="muted small">(${t.confirmed_hours.remaining}h left, ${t.confirmed_hours.confidence}, ${t.confirmed_hours.source.replace("_", " ")})</span>` : (t.assignee ? ` &rarr; <span class="h-overdue_estimate">none yet</span>` : "")}</td>
+    <td class="small">${t.due_at ? fmtDT(t.due_at) : "-"}</td>
+    <td onclick="event.stopPropagation()">${t.status === "draft" ? `<button class="btn sm primary" data-submit="${t.id}">Submit</button>` : ""}</td></tr>`).join("")}
+  </tbody></table>`;
+}
+
+// ---------------------------------------------------------------- questions + alerts
+const PARAMS = {
+  raise_contributor_hours: q => [["available_hours", "Available hours", "number"], ["max_concurrent_tasks", "Max concurrent tasks", "number"]],
+  lower_min_level_with_expert_review: q => [["min_level", "New minimum level (1-" + (q.context.min_level - 1) + ")", "number"]],
+  widen_to_adjacent_area: q => [["area_id", "Adjacent area", "select", (state.meta.adjacency.filter(a => a.area_id === q.area_id).map(a => [a.adjacent_area_id, areaName(a.adjacent_area_id)]))]],
+  split_task: q => [["children_text", "One child per line:  title | hours  (at least two)", "textarea"]],
+  assign_manually: q => [["contributor_id", "Contributor", "select", contribOptions()]],
+  reassign_task: q => [["contributor_id", "Contributor", "select", contribOptions()]],
+  pick_explicitly: q => [["task_id", "Goes first", "select", (q.context.task_ids || []).map(t => [t, t])]],
+  enter_estimate_on_their_behalf: q => [["hours_total", "Hours (total)", "number"], ["confidence", "Confidence", "select", [["low", "low"], ["medium", "medium"], ["high", "high"]]]],
+  extend_due_date: q => [["extend_hours", "Extend by (hours)", "number"]],
+};
+const contribOptions = () => (state.contributors || []).map(c => [c.id, `${c.name} (${c.availability})`]);
+function questionHtml(q) {
+  const d = state.drafts[q.id] || {}; const spec = d.option && PARAMS[d.option] ? PARAMS[d.option](q) : [];
+  const ctx = q.context || {};
+  const ctxLine = [ctx.estimate_basis && `Basis: ${ctx.estimate_basis}`, ctx.reasons && `Over limit: ${ctx.reasons}`, ctx.fallback_hours && `Planning currently assumes ${ctx.fallback_hours}h from ${ctx.fallback_source}`, ctx.detail && ctx.detail].filter(Boolean);
+  return `<div class="card q" data-q="${q.id}"><div style="display:flex;gap:8px;align-items:center">${prio(q.priority)} <b>${esc(q.task_id)}</b> <span class="muted">${esc(q.title)}</span><span class="muted small" style="margin-left:auto">${q.type.replace("_", " ")} &middot; asked ${fmtT(q.asked_at)}</span></div>
+    <h4 style="margin-top:8px">${esc(q.prompt)}</h4>${ctxLine.length ? `<div class="ctx">${ctxLine.map(esc).join("<br>")}</div>` : ""}
+    <div class="opts">${q.options.map(o => `<button class="btn sm ${d.option === o ? "sel" : ""}" data-qopt="${q.id}|${o}">${o.replace(/_/g, " ")}${o === q.safe_default ? " &#9733;" : ""}</button>`).join("")}</div>
+    ${d.option ? `<div class="grid2">${spec.map(([k, label, type, opts]) => `<div><label class="f">${label}</label>${type === "select" ? `<select data-qf="${q.id}|${k}">${opts.map(([v, t]) => `<option value="${esc(v)}" ${d.values?.[k] === v ? "selected" : ""}>${esc(t)}</option>`).join("")}</select>` : type === "textarea" ? `<textarea data-qf="${q.id}|${k}">${esc(d.values?.[k] || "")}</textarea>` : `<input type="${type}" step="any" data-qf="${q.id}|${k}" value="${esc(d.values?.[k] || "")}">`}</div>`).join("")}</div>
+      <label class="f">Note (recorded in history)</label><input style="width:100%" data-qf="${q.id}|_note" value="${esc(d.values?._note || "")}">
+      <div style="margin-top:8px"><button class="btn primary" data-qgo="${q.id}">Confirm: ${d.option.replace(/_/g, " ")}</button></div>` : ""}
+    <div class="muted small" style="margin-top:6px">&#9733; = what I do if unanswered by ${fmtT(q.answer_due_at)} (${q.safe_default_applied_count ? `applied ${q.safe_default_applied_count}&times; so far; ` : ""}never a reassignment or cancellation)</div></div>`;
+}
+function inboxHtml() {
+  const { alerts, questions, outbox, recently_resolved } = state.inbox;
+  return `<h2>Questions waiting for you (${questions.length})</h2>${questions.map(questionHtml).join("") || `<div class="card muted">Nothing is waiting for a decision.</div>`}
+  <h2>Open alerts (${alerts.length})</h2>
+  <table><thead><tr><th>Severity</th><th>Task</th><th>Alert</th><th>Raised</th><th>Status</th><th></th></tr></thead><tbody>
+  ${alerts.map(a => `<tr><td>${sev(a.severity)}</td><td><a href="#" data-open="${esc(a.task_id)}">${esc(a.task_id || "")}</a></td><td>${esc(a.message)}<div class="muted small">${a.agent} &middot; ${a.trigger.replace(/_/g, " ")}${a.re_alert_count ? ` &middot; re-alerted ${a.re_alert_count}&times;` : ""}${a.outbox ? ` &middot; ${a.outbox} outbox message(s)` : ""}</div></td>
+    <td class="small">${fmtT(a.created_at)}</td><td>${a.status}${a.acknowledged_by ? `<div class="muted small">by ${esc(a.acknowledged_by)}</div>` : ""}</td>
+    <td>${a.status === "open" ? `<button class="btn sm" data-ack="${a.id}">Acknowledge</button>` : ""}</td></tr>`).join("") || `<tr><td colspan="6" class="muted">No open alerts.</td></tr>`}
+  </tbody></table>
+  <div class="grid2"><div><h2>Outbox (simulated email/chat for critical and high alerts)</h2><div class="card small">${outbox.map(o => `<div><span class="muted">${fmtT(o.created_at)}</span> &rarr; <b>${esc(o.recipient)}</b>: ${esc(o.subject)}</div>`).join("") || `<span class="muted">empty</span>`}</div></div>
+  <div><h2>Recently resolved</h2><div class="card small">${recently_resolved.map(a => `<div>${sev(a.severity)} ${esc(a.task_id)} ${esc(a.message)} <span class="muted">${fmtT(a.resolved_at)}</span></div>`).join("") || `<span class="muted">none</span>`}</div></div></div>`;
+}
+
+// ---------------------------------------------------------------- contributors
+function contributorsHtml() {
+  const cs = state.contributors || [];
+  return `<table><thead><tr><th>Contributor</th><th>Expertise</th><th>Availability</th><th>Load</th><th>Work now</th><th>Responds</th><th></th></tr></thead><tbody>
+  ${cs.map(c => { const pct = Math.min(100, Math.round(c.load_hours / c.available_hours * 100)); return `<tr><td><b>${esc(c.name)}</b> <span class="muted small">${c.id}</span><div class="muted small">${esc(c.title)}</div></td>
+    <td class="small">${c.expertise.map(e => `${esc(e.area_name)} <b>L${e.level}</b>`).join("<br>")}</td>
+    <td><select data-avail="${c.id}">${["available", "away", "offline"].map(v => `<option ${c.availability === v ? "selected" : ""}>${v}</option>`).join("")}</select></td>
+    <td><div class="bar ${pct >= 100 ? "over" : ""}"><i style="width:${pct}%"></i></div><div class="small">${c.load_hours}h / ${c.available_hours}h &middot; ${c.active_tasks}/${c.max_concurrent_tasks} tasks${c.unconfirmed_assignments ? ` <span class="flag">${c.unconfirmed_assignments} unconfirmed</span>` : ""}${c.overdue_estimates ? ` <span class="flag red">${c.overdue_estimates} overdue estimate</span>` : ""}</div></td>
+    <td class="small">${c.assignments.map(a => `${a.task_id} <span class="muted">${a.status.replace("_", " ")}</span>`).join("<br>") || "-"}</td>
+    <td><label class="small"><input type="checkbox" data-manual="${c.id}" ${c.manual ? "checked" : ""}> I respond by hand</label></td>
+    <td><button class="btn sm ${state.cid === c.id ? "primary" : ""}" data-cview="${c.id}">Work as ${esc(c.name.split(" ")[0])}</button></td></tr>`; }).join("")}</tbody></table>
+  ${state.cid ? contributorPanel() : `<p class="muted small">Contributors normally answer automatically a few seconds after being asked. Tick "I respond by hand" and use "Work as..." to accept, estimate and report status yourself, which is how the estimate gate is shown.</p>`}`;
+}
+function contributorPanel() {
+  const c = (state.contributors || []).find(x => x.id === state.cid), i = state.cinbox; if (!c || !i) return "";
+  const est = (aid, label, extra = "") => `<div class="grid3" data-form="${aid}"><div><label class="f">Hours (total)</label><input type="number" step="any" data-f="hours_total"></div><div><label class="f">Confidence</label><select data-f="confidence"><option>high</option><option selected>medium</option><option>low</option></select></div><div><label class="f">Basis</label><select data-f="basis"><option value="similar_work">similar work</option><option value="spec_review">spec review</option><option value="rough_guess" selected>rough guess</option></select></div></div>${extra}`;
+  return `<h2>${esc(c.name)}'s workspace ${c.manual ? "" : `<span class="flag">answering automatically - tick "I respond by hand" to take over</span>`}</h2>
+  <div class="card"><b>Offers (${i.offers.length})</b>${i.offers.map(o => `<div style="border-top:1px solid var(--line);margin-top:8px;padding-top:8px"><b>${o.task_id}</b> ${prio(o.priority)} ${esc(o.title)}<div class="muted small">${esc(o.story_i_want)} &middot; requester estimate ${o.requester_hours}h &middot; due ${fmtDT(o.due_at)}</div>
+     ${est(o.id)}<div style="margin-top:8px"><button class="btn primary" data-accept="${o.id}">Accept with this estimate</button> <input placeholder="reason" data-decline-reason="${o.id}"> <button class="btn danger" data-decline="${o.id}">Decline</button></div></div>`).join("") || `<div class="muted small">none</div>`}</div>
+  <div class="card"><b>Estimate requests (${i.estimate_requests.length})</b>${i.estimate_requests.map(r => `<div style="border-top:1px solid var(--line);margin-top:8px;padding-top:8px"><b>${r.task_id}</b> ${esc(r.title)} <span class="muted small">${r.kind} #${r.sequence}, due ${fmtT(r.due_at)}</span>${est(r.assignment_id)}<div style="margin-top:8px"><button class="btn primary" data-estimate="${r.assignment_id}">Send estimate</button></div></div>`).join("") || `<div class="muted small">none</div>`}</div>
+  <div class="card"><b>Status check-ins (${i.status_checks.length})</b>${i.status_checks.map(s => `<div style="border-top:1px solid var(--line);margin-top:8px;padding-top:8px" data-form="chk${s.id}"><b>${s.task_id}</b> ${esc(s.title)} <span class="muted small">reply by ${fmtT(s.due_at)}</span>
+     <div class="grid3"><div><label class="f">Status</label><select data-f="status"><option>on_track</option><option>at_risk</option><option>blocked</option></select></div><div><label class="f">Progress %</label><input type="number" data-f="progress_percent"></div><div><label class="f">Hours remaining</label><input type="number" step="any" data-f="hours_remaining"></div></div>
+     <label class="f">Note</label><input style="width:100%" data-f="note"><div style="margin-top:8px"><button class="btn primary" data-reply="${s.id}">Send update</button></div></div>`).join("") || `<div class="muted small">none</div>`}</div>
+  <div class="card"><b>Active work (${i.active.length})</b>${i.active.map(a => `<div style="border-top:1px solid var(--line);margin-top:8px;padding-top:8px"><b>${a.task_id}</b> ${stat(a.status)} ${esc(a.title)} <span class="h-${a.plan_health}">${a.plan_health.replace("_", " ")}</span> <span class="muted small">${a.hours_remaining ?? "no"}h remaining</span>
+     <div style="margin-top:6px">${a.status === "accepted" ? `<button class="btn sm" data-start="${a.id}">Start work</button> <span class="muted small">(needs a confirmed estimate)</span>` : `<button class="btn sm primary" data-complete="${a.id}">Mark complete</button>`}</div></div>`).join("") || `<div class="muted small">none</div>`}</div>`;
+}
+const formVals = el => Object.fromEntries([...el.querySelectorAll("[data-f]")].map(x => [x.dataset.f, x.value]));
+
+// ---------------------------------------------------------------- report
+function reportHtml() {
+  const r = state.report;
+  const head = `<div style="display:flex;gap:8px;align-items:end;margin-bottom:10px"><div><label class="f">Date (UTC)</label><input type="date" id="rdate" value="${state.reportDate}"></div><button class="btn primary" data-act="report">Generate report</button><span class="muted small">Built from the event log; also written automatically when the day rolls over.</span></div>`;
+  if (!r) return head + `<div class="card muted">Choose a date and generate the end-of-day log.</div>`;
+  const R = r.report, q = R.estimate_quality, fl = R.flow;
+  return head + `<div class="kpi"><div class="card"><b>${q.estimate_coverage_pct ?? "n/a"}${q.estimate_coverage_pct != null ? "%" : ""}</b><span class="muted small">estimates within SLA (${q.estimates_within_sla}/${q.assignments_accepted})</span></div>
+    <div><b>${q.currently_overdue_or_stale.length}</b><span class="muted small">overdue or stale now</span></div><div><b>${q.contributors_with_estimate_debt.length}</b><span class="muted small">contributors with estimate debt</span></div>
+    <div><b>${q.capacity_decisions_on_unconfirmed_estimates.length}</b><span class="muted small">capacity decisions on unconfirmed estimates</span></div>
+    <div><b>${R.operator_interventions.length}</b><span class="muted small">operator interventions</span></div><div><b>${R.late_returns_ignored.length}</b><span class="muted small">late results ignored</span></div></div>
+  <div class="card small">Flow: created ${fl.created}, submitted ${fl.submitted}, accepted ${fl.accepted}, started ${fl.started}, completed ${fl.completed}, cancelled ${fl.cancelled}. Median minutes to estimate: ${Object.entries(q.median_minutes_to_estimate_by_priority).map(([p, m]) => `${p} ${m}`).join(", ") || "n/a"} <span class="muted">(${esc(q.note)})</span></div>
+  <h2>Records that needed attention</h2><table><thead><tr><th>Severity</th><th>Type</th><th>Task</th><th>What happened</th><th>Now</th></tr></thead><tbody>
+  ${Object.entries(R.needing_attention).flatMap(([t, items]) => items.map(a => `<tr><td>${sev(a.severity)}</td><td>${t.replace(/_/g, " ")}</td><td>${esc(a.task_id)}</td><td>${esc(a.message)}${a.outbox_messages ? `<div class="muted small">${a.outbox_messages} outbox message(s)</div>` : ""}</td><td>${a.status}</td></tr>`)).join("") || `<tr><td colspan="5" class="muted">Nothing was raised.</td></tr>`}</tbody></table>
+  <div class="grid2"><div><h2>Operator interventions</h2><div class="card small">${R.operator_interventions.map(a => `<div><span class="muted">${fmtT(a.ts)}</span> ${esc(a.actor.replace("operator:", ""))}: ${esc(a.event.replace(/_/g, " "))} ${esc(a.task_id || "")}</div>`).join("") || `<span class="muted">none</span>`}</div></div>
+  <div><h2>Questions</h2><div class="card small">asked ${R.questions.asked}, answered by operator ${R.questions.answered_by_operator}, closed by safe default ${R.questions.answered_by_safe_default}, deadline passed without closing ${R.questions.safe_default_applied_without_closing}<br>still open: ${R.questions.still_open.map(x => `${x.task_id} (${x.type.replace("_", " ")})`).join(", ") || "none"}</div></div></div>
+  <h2>Tasks touched</h2><table><thead><tr><th>Task</th><th>Priority</th><th>State now</th><th>Age</th><th>Assignee</th><th>Plan</th></tr></thead><tbody>${R.tasks_touched.map(t => `<tr><td><b>${t.id}</b> ${esc(t.title)}</td><td>${prio(t.priority)}</td><td>${stat(t.status)}</td><td>${ageText(t.age_minutes)}</td><td>${esc(t.assignee || "-")}</td><td>${t.plan_health || "-"}</td></tr>`).join("")}</tbody></table>
+  <details style="margin-top:10px"><summary>Plain-text version</summary><pre class="doc">${esc(r.text)}</pre></details>`;
+}
+
+// ---------------------------------------------------------------- new task
+function newHtml() {
+  const m = state.meta;
+  return `<h2>Create a task</h2><form id="newtask" class="card"><div class="grid2"><div><label class="f">Title</label><input name="title" style="width:100%" required></div>
+   <div><label class="f">Requested by</label><input name="requester" style="width:100%" placeholder="name (team)"></div></div>
+   <div class="grid3"><div><label class="f">Area of expertise</label><select name="area_id" style="width:100%">${m.areas.map(a => `<option value="${a.id}">${esc(a.name)}</option>`).join("")}</select></div>
+   <div><label class="f">Minimum expertise level</label><select name="min_level" style="width:100%">${m.levels.map(l => `<option value="${l.level}" ${l.level === 2 ? "selected" : ""}>${l.level} - ${l.name}</option>`).join("")}</select></div>
+   <div><label class="f">Priority</label><select name="priority" style="width:100%">${m.priorities.map(p => `<option ${p === "medium" ? "selected" : ""}>${p}</option>`).join("")}</select></div></div>
+   <div class="grid3"><div><label class="f">Estimated effort (hours, provisional)</label><input name="hours" type="number" step="any" min="1" value="8" style="width:100%"></div>
+   <div><label class="f">Due in (hours)</label><input name="due" type="number" step="any" min="1" value="72" style="width:100%"></div>
+   <div><label class="f">Simulated engine behaviour (demo control)</label><select name="sim" style="width:100%"><option value="">default (5-20s, 20% never return)</option><option value="normal">normal (5-20s)</option><option value="hang">never returns</option><option value="late_return">returns after 90s</option></select></div></div>
+   <label class="f">User story</label><div class="grid3"><input name="as_a" placeholder="As a ..."><input name="i_want" placeholder="I want ..."><input name="so_that" placeholder="So that ..."></div>
+   <label class="f">Description of the work</label><textarea name="description" required></textarea>
+   <div class="grid2"><div><label class="f">Attachment: requirements (saved as requirements.md)</label><textarea name="requirements" required></textarea></div><div><label class="f">Attachment: user acceptance criteria (saved as acceptance_criteria.md)</label><textarea name="acceptance" required></textarea></div></div>
+   <p><label><input type="checkbox" name="submit" checked> Submit for assignment immediately</label></p><button class="btn primary" type="submit">Create task</button></form>`;
+}
+async function createTask(form) {
+  const f = Object.fromEntries(new FormData(form).entries());
+  const [name, team] = (f.requester || "").replace(")", "").split("(");
+  const body = { title: f.title, area_id: f.area_id, min_level: +f.min_level, priority: f.priority, estimated_effort_hours: +f.hours, due_in_hours: +f.due || null,
+    user_story: { as_a: f.as_a, i_want: f.i_want, so_that: f.so_that }, description: f.description, sim_routing: f.sim || null, submit: !!f.submit,
+    requester: name ? { name: name.trim(), team: (team || "").trim() || "Operations" } : null,
+    attachments: [{ kind: "requirements", filename: "requirements.md", content: f.requirements }, { kind: "acceptance_criteria", filename: "acceptance_criteria.md", content: f.acceptance }] };
+  const r = await act(() => api("POST", "/api/tasks", body), r => `Created ${r.id} (${r.status})`);
+  if (r) { state.view = "board"; $("#main").dataset.form = ""; render(); openTask(r.id); }
+}
+
+// ---------------------------------------------------------------- task drawer
+const EV = {
+  task_created: (e, p) => `Task created (${p.source})`,
+  task_status_changed: (e, p) => `Status <b>${p.from} &rarr; ${p.to}</b>${p.reason ? ` <span class="muted">(${esc(p.reason)})</span>` : ""}`,
+  routing_requested: (e, p) => `Routing request #${p.request_id} (attempt ${p.attempt}) sent to the engine with ${p.eligible.length} eligible contributor(s): ${p.eligible.join(", ") || "none"}`,
+  routing_returned: (e, p) => `Engine answered request #${p.request_id}: <b>${p.outcome}</b>${p.pick ? ` (${p.pick})` : ""}${p.reasons ? ` - ${esc(p.reasons.join("; "))}` : ""}`,
+  routing_superseded: (e, p) => `Routing request #${p.request_id} superseded (${esc(p.reason)}); if it answers later the result will be ignored`,
+  late_return_superseded: (e, p) => `Request #${p.request_id} answered late (it would have picked ${p.late_pick || "nobody"}). <b>Ignored</b>: the task is ${p.current_status}`,
+  pick_adjusted: (e, p) => `Pick adjusted to ${p.new_pick}: ${esc(p.reason)}`,
+  assignment_offered: (e, p) => `Offered to ${p.contributor_id} (${p.source})${p.warnings?.length ? ` - warnings: ${esc(p.warnings.join("; "))}` : ""}`,
+  assignment_accepted: (e, p) => `Assignment accepted (estimate due ${fmtT(p.estimate_due_at)})`,
+  assignment_declined: (e, p) => `${p.contributor_id} declined: ${esc(p.reason)}`, assignment_failed: (e, p) => `Assignment to ${p.contributor_id} failed: ${esc(p.reason)}`,
+  assignment_cancelled: (e, p) => `Assignment to ${p.contributor_id} cancelled: ${esc(p.reason)}`,
+  estimate_requested: () => "Estimate requested from the contributor", estimate_reminder_sent: (e, p) => `Estimate reminder #${p.sequence} sent`,
+  estimate_submitted: (e, p) => `Estimate: <b>${p.hours_total}h</b> total, ${p.hours_remaining}h remaining (${p.confidence} confidence, ${p.source.replace("_", " ")})${p.note ? ` - ${esc(p.note)}` : ""}`,
+  plan_health_changed: (e, p) => `Plan health ${p.from} &rarr; <b>${p.to}</b> (${esc(p.reason)})`,
+  status_check_requested: () => "Status check-in requested", status_check_missed: () => "Status check-in missed",
+  status_reply: (e, p) => `Status: <b>${p.status}</b>${p.progress_percent != null ? `, ${p.progress_percent}%` : ""}${p.hours_remaining != null ? `, ${p.hours_remaining}h remaining` : ""}${p.note ? ` - ${esc(p.note)}` : ""}`,
+  alert_raised: (e, p) => `${sev(p.severity)} ${esc(p.message)}`, alert_acknowledged: () => "Alert acknowledged", alert_resolved: (e, p) => `Alert resolved: ${esc(p.reason)}`,
+  alert_re_alerted: (e, p) => `Re-alert #${p.count} (${p.severity})`,
+  question_asked: (e, p) => `Question for the operator: ${p.type.replace("_", " ")} (default if unanswered: ${p.safe_default})`,
+  question_answered: (e, p) => `Answered <b>${esc(p.answer)}</b>${p.note ? ` - ${esc(p.note)}` : ""}`,
+  question_safe_default_applied: (e, p) => `Deadline passed: applied safe default <b>${p.safe_default}</b>`,
+  question_followup: (e, p) => `Operator chose ${esc(p.option)}: ${esc(p.detail)}`,
+  capacity_conflict: (e, p) => `Capacity conflict for ${p.contributor_id}: ${esc(p.reasons.join("; "))}`, capacity_override: () => "Operator overrode the capacity limit",
+  work_started: () => "Work started", work_completed: () => "Work completed", task_requirements_changed: (e, p) => `Requirements changed: ${esc(JSON.stringify(p))}`,
+  eligibility_restored: () => "An eligible contributor became available; re-routing", reminder_sent: (e, p) => `Reminder sent (${p.kind})`,
+};
+const describe = e => (EV[e.event_type] ? EV[e.event_type](e, e.payload) : `${e.event_type.replace(/_/g, " ")} <span class="muted small">${esc(JSON.stringify(e.payload))}</span>`);
+function evClass(e) { return e.event_type.startsWith("alert") || e.event_type.startsWith("question") || /conflict|stuck|late/.test(e.event_type) ? "alert" : e.actor.startsWith("operator") ? "op" : /accepted|completed|started/.test(e.event_type) ? "ok" : ""; }
+
+function openTask(id) { state.taskId = id; state.dtab = "overview"; state.detail = null; state.att = null; $("#drawer").classList.add("open"); $("#backdrop").classList.add("on"); delete state.hash.drawer; refresh(); }
+function closeTask() { state.taskId = null; $("#drawer").classList.remove("open"); $("#backdrop").classList.remove("on"); }
+function renderDrawer() {
+  const d = state.detail, el = $("#drawer"); if (!d) { el.innerHTML = `<div class="body muted" style="padding:20px">Loading...</div>`; return; }
+  const t = d.task, live = d.assignments.find(a => ["offered", "accepted", "in_progress"].includes(a.status));
+  const tabs = [["overview", "Overview"], ["routing", "Routing & assignment"], ["estimates", "Estimates & status"], ["history", `History (${d.events.length})`], ["intervene", "Intervene"]];
+  const body = { overview: () => overview(d), routing: () => routingTab(d), estimates: () => estimatesTab(d), history: () => history(d), intervene: () => intervene(d, t, live) }[state.dtab]();
+  setHtml(el, `<div class="head"><div style="flex:1"><div><b style="font-size:16px">${t.id}</b> ${prio(t.priority)} ${stat(t.status)}</div><div>${esc(t.title)}</div><div class="muted small">${esc(d.area?.name)} &middot; min level ${t.min_level} &middot; created ${age(t.created_at)} ago</div></div><button class="btn" data-close="1">Close</button></div>
+   <div class="body"><div class="tabs">${tabs.map(([k, l]) => `<button data-dtab="${k}" class="${state.dtab === k ? "on" : ""}">${l}</button>`).join("")}</div>${body}</div>`, "drawer");
+}
+function overview(d) {
+  const t = d.task, a = state.att;
+  return `<div class="card"><div class="muted small">User story</div>As a <b>${esc(t.story_as_a)}</b>, I want <b>${esc(t.story_i_want)}</b>, so that <b>${esc(t.story_so_that)}</b>.
+   <div class="muted small" style="margin-top:8px">Description</div>${esc(t.description)}<div class="muted small" style="margin-top:8px">Requested by ${esc(t.requester_name)} (${esc(t.requester_team)}) &middot; provisional estimate ${t.estimated_effort_hours}h &middot; due ${fmtDT(t.due_at)}${t.hold_reason ? ` &middot; holding: ${t.hold_reason}` : ""}</div></div>
+   <h2>Attachments</h2><div class="card">${d.attachments.map(x => `<button class="btn sm" data-att="${x.id}">${esc(x.filename)}</button> <span class="muted small">${x.kind.replace("_", " ")} &middot; ${x.size_bytes} bytes${x.description ? " &middot; " + esc(x.description) : ""}</span><br>`).join("") || "none"}
+   ${a ? `<pre class="doc" style="margin-top:8px">${esc(a.text)}</pre>` : ""}</div>`;
+}
+function routingTab(d) {
+  return `<h2>Routing requests</h2>${d.routing_requests.map(r => `<div class="card"><b>#${r.id}</b> attempt ${r.attempt} &middot; <b>${r.status}</b> &middot; sent ${fmtT(r.started_at)}${r.finished_at ? `, closed ${fmtT(r.finished_at)}` : ""}
+     ${r.status === "pending" ? `<div>${r.possibly_stuck ? `<span class="flag red">possibly stuck</span> ` : ""}waiting <span class="secs" data-t="${esc(r.started_at)}"></span>s. This may be slow or may never return; nothing is failed automatically.</div>` : ""}
+     ${r.late_returned_at ? `<div class="small">Its answer arrived at ${fmtT(r.late_returned_at)} after the operator had intervened and was ignored.</div>` : ""}
+     <div class="small muted">Eligible when sent: ${r.eligible.map(e => `${e.id} (L${e.level}${e.fits ? "" : ", over capacity"})`).join(", ") || "nobody"}</div>${r.result ? `<div class="small">Result: ${esc(JSON.stringify(r.result))}</div>` : ""}</div>`).join("") || `<div class="card muted">No routing requests yet.</div>`}
+   <h2>Assignments</h2>${d.assignments.map(a => `<div class="card"><b>${esc(a.contributor_name)}</b> ${stat(a.status)} <span class="muted small">${a.source} &middot; offered ${fmtT(a.offered_at)}${a.end_reason ? ` &middot; ${esc(a.end_reason)}` : ""}</span></div>`).join("") || `<div class="card muted">Not assigned.</div>`}`;
+}
+function estimatesTab(d) {
+  return d.assignments.map(a => `<div class="card"><b>${esc(a.contributor_name)}</b> ${stat(a.status)} plan: <b class="h-${a.plan_health}">${a.plan_health.replace("_", " ")}</b>${a.estimate_due_at ? ` <span class="muted small">estimate due ${fmtT(a.estimate_due_at)}</span>` : ""}
+    <table style="margin-top:8px"><thead><tr><th>#</th><th>Total</th><th>Remaining</th><th>Confidence</th><th>Source</th><th>When</th></tr></thead><tbody>${a.revisions.map(r => `<tr><td>${r.revision}</td><td>${r.hours_total}h</td><td>${r.hours_remaining}h</td><td>${r.confidence} (${r.basis.replace("_", " ")})</td><td>${r.source.replace("_", " ")}</td><td>${fmtT(r.submitted_at)}</td></tr>`).join("") || `<tr><td colspan="6" class="muted">No confirmed estimate yet. Planning uses the requester's ${d.task.estimated_effort_hours}h x1.25 (unconfirmed).</td></tr>`}</tbody></table>
+    <div class="small muted" style="margin-top:6px">Estimate requests: ${a.estimate_requests.map(r => `${r.kind} #${r.sequence} sent ${fmtT(r.sent_at)}${r.answered_at ? " (answered)" : ""}`).join("; ") || "none"}<br>
+    Check-ins: ${a.status_checks.map(s => `${fmtT(s.sent_at)} ${s.status || "waiting"}${s.progress_percent != null ? ` ${s.progress_percent}%` : ""}`).join("; ") || "none yet"}</div></div>`).join("") || `<div class="card muted">No assignment yet.</div>`;
+}
+function history(d) { return `<div class="tl">${d.events.map(e => `<div class="ev ${evClass(e)}"><span class="muted small">${fmtDT(e.ts)} ${fmtT(e.ts)} &middot; ${esc(e.actor)}</span><div>${describe(e)}</div></div>`).join("")}</div>`; }
+function intervene(d, t, live) {
+  const terminal = ["completed", "cancelled"].includes(t.status);
+  if (terminal) return `<div class="card muted">This task is ${t.status}.</div>`;
+  const qs = d.questions.filter(q => q.status === "open").map(q => ({ ...q, priority: t.priority, title: t.title, area_id: t.area_id })).map(questionHtml).join("");
+  return `${qs ? `<h2>Waiting for your decision</h2>${qs}` : ""}<h2>Assign now</h2><div class="card small muted">You can intervene at any time, including while a routing request is pending. A pending request is superseded; if it answers later the result is recorded and ignored. ${live ? `<br>Currently ${live.status} with <b>${esc(live.contributor_name)}</b>: choosing someone else cancels that assignment.` : ""}</div>
+   <table><thead><tr><th>Contributor</th><th>Eligible</th><th>Capacity</th><th></th></tr></thead><tbody>${d.contributors.sort((a, b) => b.eligible - a.eligible || b.fits - a.fits).map(c => `<tr><td>${esc(c.name)}<div class="muted small">${c.availability}</div></td><td>${c.eligible ? `yes (L${c.level})` : `<span class="muted">no</span>`}</td>
+     <td class="small">${c.fits ? `<span class="h-complete">fits</span>` : `<span class="h-overdue_estimate">${esc(c.reasons.join("; "))}</span>`}</td><td><button class="btn sm ${c.eligible && c.fits ? "primary" : ""}" data-assign="${t.id}|${c.id}" data-warn="${esc((c.eligible ? "" : "not eligible. ") + (c.fits ? "" : c.reasons.join("; ")))}">Assign</button></td></tr>`).join("")}</tbody></table>
+   <h2>Cancel</h2><input id="cancel-reason" placeholder="reason" style="width:60%"> <button class="btn danger" data-cancel="${t.id}">Cancel task</button>`;
+}
+
+// ---------------------------------------------------------------- events
+document.addEventListener("click", async ev => {
+  const t = ev.target.closest("button, [data-open], [data-filter], a"); if (!t) return; const d = t.dataset;
+  if (t.tagName === "A") ev.preventDefault();
+  if (d.view) { state.view = d.view; state.hash.main = ""; delete state.hash.board; render(); refresh(); return; }
+  if (d.filter) { state.filter = d.filter; delete state.hash.board; render(); return; }
+  if (d.open !== undefined && d.open) return openTask(d.open);
+  if (d.close) return closeTask();
+  if (d.dtab) { state.dtab = d.dtab; delete state.hash.drawer; return renderDrawer(); }
+  if (d.ack) return act(() => api("POST", `/api/alerts/${d.ack}/ack`, {}), "Acknowledged");
+  if (d.submit) return act(() => api("POST", `/api/tasks/${d.submit}/submit`, {}), `${d.submit} submitted for assignment`);
+  if (d.act === "submit-drafts") return act(() => api("POST", "/api/demo/submit-drafts", {}), r => `Submitted ${r.submitted.length} task(s)`);
+  if (d.act === "report") { state.reportDate = $("#rdate").value; state.report = await api("GET", `/api/report?date=${state.reportDate}`).catch(e => { toast(e.message, false); return null; }); delete state.hash.main; delete state.hash.report; return render(); }
+  if (d.att) { const txt = await fetch(`/api/attachments/${d.att}`).then(r => r.text()); state.att = { id: d.att, text: txt }; delete state.hash.drawer; return renderDrawer(); }
+  if (d.qopt) { const [id, o] = d.qopt.split("|"); state.drafts[id] = { option: o, values: state.drafts[id]?.values || {} }; delete state.hash.inbox; delete state.hash.drawer; return render(); }
+  if (d.qgo) return answerQuestion(+d.qgo);
+  if (d.assign) { const [tid, cid] = d.assign.split("|"); if (d.warn && !confirm(`Warnings: ${d.warn}\nAssign anyway?`)) return;
+    return act(() => api("POST", `/api/tasks/${tid}/assign`, { contributor_id: cid, reason: "operator intervention" }), r => `Assigned${r.warnings.length ? " (warnings: " + r.warnings.join("; ") + ")" : ""}`); }
+  if (d.cancel) { if (!confirm(`Cancel ${d.cancel}?`)) return; return act(() => api("POST", `/api/tasks/${d.cancel}/cancel`, { reason: $("#cancel-reason")?.value }), "Cancelled"); }
+  if (d.cview) { state.cid = state.cid === d.cview ? null : d.cview; state.cinbox = null; delete state.hash.contributors; return refresh(true); }
+  if (d.accept) { const f = formVals(t.closest(".card").querySelector(`[data-form="${d.accept}"]`)); return act(() => api("POST", `/api/assignments/${d.accept}/accept`, f), "Accepted with estimate"); }
+  if (d.decline) { const reason = $(`[data-decline-reason="${d.decline}"]`).value; return act(() => api("POST", `/api/assignments/${d.decline}/decline`, { reason }), "Declined"); }
+  if (d.estimate) { const f = formVals(t.closest("div[style]").querySelector(`[data-form="${d.estimate}"]`)); return act(() => api("POST", `/api/assignments/${d.estimate}/estimate`, f), "Estimate sent"); }
+  if (d.reply) { const f = formVals(t.closest(`[data-form="chk${d.reply}"]`)); return act(() => api("POST", `/api/status-checks/${d.reply}/reply`, f), "Update sent"); }
+  if (d.start) return act(() => api("POST", `/api/assignments/${d.start}/start`, {}), "Work started");
+  if (d.complete) return act(() => api("POST", `/api/assignments/${d.complete}/complete`, {}), "Completed");
+});
+document.addEventListener("input", ev => { const k = ev.target.dataset.qf; if (k) { const [id, f] = k.split("|"); (state.drafts[id] ||= { values: {} }).values ||= {}; state.drafts[id].values[f] = ev.target.value; } });
+document.addEventListener("change", async ev => {
+  const d = ev.target.dataset;
+  if (d.avail) return act(() => api("POST", `/api/contributors/${d.avail}/availability`, { availability: ev.target.value, away_reason: ev.target.value === "available" ? null : "set by operator" }), `Availability set to ${ev.target.value}`);
+  if (d.manual) return act(() => api("POST", `/api/contributors/${d.manual}/manual`, { manual: ev.target.checked }), ev.target.checked ? "You now answer for this contributor" : "Simulation answers for this contributor");
+});
+document.addEventListener("submit", ev => { if (ev.target.id === "newtask") { ev.preventDefault(); createTask(ev.target); } });
+$("#backdrop").addEventListener("click", closeTask);
+async function answerQuestion(id) {
+  const q = state.inbox.questions.find(x => x.id === id) || state.detail?.questions.find(x => x.id === id); const dft = state.drafts[id]; if (!q || !dft?.option) return;
+  const spec = PARAMS[dft.option] ? PARAMS[dft.option]({ ...q, area_id: q.area_id || state.detail?.task.area_id }) : [], params = {};
+  for (const [k, , type, opts] of spec) {
+    let v = dft.values?.[k]; if (v === undefined && type === "select") v = opts[0]?.[0]; if (v === undefined || v === "") continue;
+    if (k === "children_text") params.children = v.split("\n").map(l => l.split("|")).filter(p => p[0].trim()).map(([title, h]) => ({ title: title.trim(), estimated_effort_hours: parseFloat(h) }));
+    else params[k] = type === "number" ? parseFloat(v) : v;
+  }
+  const r = await act(() => api("POST", `/api/questions/${id}/answer`, { option: dft.option, params, note: dft.values?._note || null }), r => r.detail || "Answered");
+  if (r) { delete state.drafts[id]; delete state.hash.inbox; delete state.hash.drawer; }
+}
+
+// ---------------------------------------------------------------- start
+setInterval(tickAges, 1000);
+setInterval(() => refresh(), 2000);
+$("#op").value = localStorage.getItem("operator") || "operator"; $("#op").addEventListener("change", e => localStorage.setItem("operator", e.target.value));
+refresh(true);
+</script>
+</body>
+</html>

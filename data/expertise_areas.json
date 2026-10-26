@@ -1,0 +1,251 @@
+{
+  "_meta": {
+    "dataset": "expertise_areas",
+    "version": 1,
+    "description": "Reference data. Defines what each area of expertise means so that task authors, contributors and the routing engine share one vocabulary. Task.area and Contributor.expertise[].area both reference expertise_areas[].id."
+  },
+  "levels": [
+    { "level": 1, "name": "Foundational", "meaning": "Understands the concepts and can do routine work under review. Not trusted to work unsupervised on ambiguous problems." },
+    { "level": 2, "name": "Practitioner", "meaning": "Delivers standard work independently. Escalates unusual cases. Default minimum level for most tasks." },
+    { "level": 3, "name": "Advanced", "meaning": "Handles complex, ambiguous or cross-cutting work. Can review the work of Practitioners." },
+    { "level": 4, "name": "Expert", "meaning": "Recognised authority. Takes on high-risk, novel or externally-audited work and sets the standard others follow." }
+  ],
+  "areas": [
+    {
+      "id": "finance",
+      "name": "Finance",
+      "summary": "Accounting, financial analysis, reconciliation and reporting for the business.",
+      "description": "Work that deals with money moving through the organisation and how it is measured and reported. This includes recording transactions correctly, reconciling records between systems, analysing variance between plan and actual, preparing management and statutory reports, and forecasting. A finance task usually has a numeric source of truth (ledger, invoices, bank statements) and a reviewer who will check totals. Accuracy, traceability of every number back to its source, and awareness of period cut-off rules matter more than speed. Finance work is frequently time-boxed to a close calendar, so lateness has a direct business cost.",
+      "in_scope": [
+        "Budget vs. actual variance analysis and commentary",
+        "Account and invoice reconciliation (vendor, bank, intercompany)",
+        "Accruals, deferrals and month-end close support",
+        "Financial reporting packs and KPI calculation",
+        "Cash-flow and revenue forecasting"
+      ],
+      "out_of_scope": [
+        "Tax filing and legal advice (see legal_compliance)",
+        "Building data pipelines or dashboards (see data_analysis)",
+        "Investment advice to individuals"
+      ],
+      "sub_skills": [
+        { "id": "variance_analysis", "name": "Variance analysis", "description": "Explain the difference between budget/forecast and actuals, separating timing differences from real drivers." },
+        { "id": "reconciliation", "name": "Reconciliation", "description": "Match two independent records, classify unmatched items and propose adjusting entries." },
+        { "id": "month_end_close", "name": "Month-end close", "description": "Accruals, prepayments, cut-off testing and close checklists." },
+        { "id": "forecasting", "name": "Forecasting", "description": "Driver-based revenue, cost and cash forecasts with stated assumptions." },
+        { "id": "financial_reporting", "name": "Financial reporting", "description": "Management packs, board summaries and statutory schedules." }
+      ],
+      "level_rubric": {
+        "1": "Can code transactions and tick-and-tie simple reconciliations with a template.",
+        "2": "Owns a routine reconciliation or variance report end-to-end and documents the unmatched items.",
+        "3": "Runs a close workstream, designs the reconciliation approach, and challenges source data quality.",
+        "4": "Signs off on externally-reviewed numbers, defines policy and handles audit questions."
+      },
+      "typical_deliverables": ["Variance report with commentary", "Reconciliation workbook with unmatched-item log", "Accrual schedule", "Forecast model with assumptions sheet"],
+      "example_tasks": [
+        "Explain why Q3 travel spend is 18% over budget",
+        "Reconcile 3 months of vendor invoices against the AP ledger",
+        "Review the accrual schedule before month-end close"
+      ],
+      "keywords": ["budget", "variance", "invoice", "ledger", "accrual", "reconcile", "forecast", "close", "cash", "revenue", "expense"],
+      "adjacent_areas": ["data_analysis", "operations", "legal_compliance"]
+    },
+    {
+      "id": "healthcare",
+      "name": "Healthcare",
+      "summary": "Clinical operations, health data standards and patient-facing process knowledge.",
+      "description": "Work that requires understanding how care is delivered and how health information is recorded and protected. This covers clinical workflows (admission, intake, discharge, referral), health data standards and terminologies (ICD-10, SNOMED CT, LOINC, HL7/FHIR), data quality in clinical systems, and the privacy rules that govern patient data. Healthcare tasks often involve sensitive information, so contributors must know what may and may not be copied into working files. A mistake can have patient-safety consequences, which is why healthcare tasks are often higher priority and need a higher minimum level than the same task would in another domain. Contributors do not need to be licensed clinicians, but they must be fluent in the vocabulary and the failure modes of clinical data.",
+      "in_scope": [
+        "Auditing the quality and completeness of clinical or intake data",
+        "Mapping between clinical terminologies and code sets",
+        "Documenting and improving clinical or administrative workflows",
+        "Privacy and de-identification review of health datasets (technical, not legal opinion)",
+        "Interpreting clinical metrics (readmission, length of stay, wait times)"
+      ],
+      "out_of_scope": [
+        "Giving medical advice or diagnoses",
+        "Formal legal interpretation of health-privacy law (see legal_compliance)",
+        "General-purpose statistics unrelated to care delivery (see data_analysis)"
+      ],
+      "sub_skills": [
+        { "id": "clinical_data_quality", "name": "Clinical data quality", "description": "Completeness, plausibility and consistency checks on intake and encounter records." },
+        { "id": "terminology_mapping", "name": "Terminology mapping", "description": "Cross-walk between ICD-10, SNOMED CT, LOINC and local code sets, with documented ambiguity." },
+        { "id": "clinical_workflows", "name": "Clinical workflows", "description": "Admission, triage, referral and discharge process knowledge." },
+        { "id": "health_privacy", "name": "Health data privacy", "description": "PHI identification, minimum-necessary principle, de-identification methods." },
+        { "id": "interoperability", "name": "Interoperability", "description": "HL7 v2, FHIR resources and the practical limits of data exchange between systems." }
+      ],
+      "level_rubric": {
+        "1": "Knows common clinical terms and can follow a data-entry or review checklist.",
+        "2": "Can audit a dataset against documented rules and flag records needing clinical review.",
+        "3": "Maps terminologies with documented ambiguity, designs quality rules, and advises on PHI handling.",
+        "4": "Clinical informatics authority: defines standards, resolves ambiguous mappings and advises on patient-safety impact."
+      },
+      "typical_deliverables": ["Data quality audit report with record-level findings", "Terminology crosswalk with confidence ratings", "Workflow diagram with pain points", "De-identification checklist"],
+      "example_tasks": [
+        "Audit last month's patient intake forms for missing mandatory fields",
+        "Map the local diagnosis list to ICD-10-CM",
+        "Document the current discharge-planning workflow and its handoff gaps"
+      ],
+      "keywords": ["patient", "clinical", "intake", "icd", "snomed", "hl7", "fhir", "phi", "hipaa", "discharge", "diagnosis", "encounter"],
+      "adjacent_areas": ["data_analysis", "legal_compliance", "operations"]
+    },
+    {
+      "id": "data_analysis",
+      "name": "Data Analysis",
+      "summary": "Turning raw data into trustworthy answers: cleaning, analysis, metrics and visualisation.",
+      "description": "Work that starts with a question and a pile of data and ends with a defensible answer. It includes acquiring and cleaning data, exploratory analysis, defining metrics precisely, cohort and trend analysis, statistical reasoning, and communicating the result in tables or visuals that a decision-maker can act on. The area is domain-agnostic: it pairs with finance, healthcare or operations when the question is domain-specific, and stands alone when the challenge is the data itself. Good analysis states its assumptions, quantifies uncertainty, and shows how a number was derived so it can be reproduced. A task is rarely done when the chart is drawn; it is done when a reviewer can trace each claim to a query or calculation.",
+      "in_scope": [
+        "Exploratory analysis and data profiling",
+        "Cohort, funnel, retention and trend analysis",
+        "Metric and KPI definition, including edge cases",
+        "Dashboard design and specification",
+        "Data cleaning, deduplication and validation rules",
+        "Basic statistical testing and sampling"
+      ],
+      "out_of_scope": [
+        "Building production ML models",
+        "Data engineering infrastructure and pipeline operations",
+        "Domain interpretation that needs clinical or accounting expertise (pair with that area)"
+      ],
+      "sub_skills": [
+        { "id": "data_cleaning", "name": "Data cleaning & profiling", "description": "Null, duplicate and outlier handling; profiling distributions before analysis." },
+        { "id": "cohort_analysis", "name": "Cohort & retention analysis", "description": "Group users or records by shared start event and track behaviour over time." },
+        { "id": "metric_definition", "name": "Metric definition", "description": "Unambiguous definitions with numerator, denominator, grain and exclusions." },
+        { "id": "visualisation", "name": "Visualisation", "description": "Choose and build charts and dashboards that answer the question without misleading." },
+        { "id": "statistics", "name": "Statistical reasoning", "description": "Significance, confidence intervals, sampling bias and causal caution." }
+      ],
+      "level_rubric": {
+        "1": "Can run provided queries, build simple charts and spot obvious data errors.",
+        "2": "Frames a question, writes the queries and delivers a clear summary with caveats.",
+        "3": "Handles messy multi-source data, designs metric frameworks and reviews others' analyses.",
+        "4": "Sets analytical standards, handles causal-inference questions and advises on decisions with material impact."
+      },
+      "typical_deliverables": ["Analysis notebook or query pack", "Metric definition sheet", "Dashboard specification", "Findings memo with caveats"],
+      "example_tasks": [
+        "Calculate 90-day retention by signup cohort and explain the Q2 drop",
+        "Define 'active customer' and document edge cases",
+        "Profile the customer table and list the top data-quality issues"
+      ],
+      "keywords": ["cohort", "retention", "churn", "metric", "kpi", "dashboard", "query", "sql", "trend", "segment", "dataset", "visual"],
+      "adjacent_areas": ["finance", "healthcare", "operations"]
+    },
+    {
+      "id": "operations",
+      "name": "Operations",
+      "summary": "Running, measuring and improving the day-to-day processes that deliver the product or service.",
+      "description": "Work that keeps processes running and makes them better: logistics, fulfilment, service delivery, vendor and capacity management, incident response and continuous improvement. Operations contributors think in terms of flow, bottlenecks, handoffs, service levels and root causes. Typical tasks involve mapping how work actually happens (as opposed to how it is documented), finding where it stalls, proposing changes and defining how success will be measured. Incident-related tasks require calm, blameless investigation and a written record that prevents recurrence. This area is practical and cross-functional; deliverables are usually process maps, runbooks, root-cause analyses and improvement plans.",
+      "in_scope": [
+        "Process mapping and bottleneck analysis",
+        "Incident investigation and post-incident reviews",
+        "Runbooks, SOPs and checklists",
+        "Capacity and workload planning",
+        "Vendor and service-level monitoring",
+        "Continuous-improvement proposals with measurable targets"
+      ],
+      "out_of_scope": [
+        "Writing production software",
+        "Financial close activities (see finance)",
+        "Contract review (see legal_compliance)"
+      ],
+      "sub_skills": [
+        { "id": "process_mapping", "name": "Process mapping", "description": "Document the as-is process, handoffs and wait states from interviews and records." },
+        { "id": "root_cause_analysis", "name": "Root-cause analysis", "description": "5-whys, fishbone and timeline reconstruction without assigning blame." },
+        { "id": "incident_management", "name": "Incident management", "description": "Triage, communication cadence, mitigation and post-incident review." },
+        { "id": "capacity_planning", "name": "Capacity planning", "description": "Match workload forecasts to staffing and resource limits." },
+        { "id": "sla_management", "name": "SLA & vendor management", "description": "Define, monitor and escalate on service-level commitments." }
+      ],
+      "level_rubric": {
+        "1": "Can follow and update an existing runbook or checklist.",
+        "2": "Maps a process end-to-end and identifies clear bottlenecks with supporting evidence.",
+        "3": "Leads incident reviews, designs process changes and quantifies expected improvement.",
+        "4": "Owns operational strategy, resolves cross-team conflicts and sets service-level policy."
+      },
+      "typical_deliverables": ["As-is / to-be process map", "Post-incident review", "Runbook", "Improvement plan with metrics"],
+      "example_tasks": [
+        "Map the returns process from customer request to refund",
+        "Write the post-incident review for last week's shipping delay",
+        "Draft a runbook for the nightly batch failure"
+      ],
+      "keywords": ["process", "workflow", "incident", "postmortem", "root cause", "sla", "vendor", "capacity", "runbook", "bottleneck", "logistics", "fulfilment"],
+      "adjacent_areas": ["data_analysis", "technical_writing", "finance"]
+    },
+    {
+      "id": "legal_compliance",
+      "name": "Legal & Compliance",
+      "summary": "Interpreting rules, policies and contracts, and checking that the organisation meets them.",
+      "description": "Work that checks whether what the organisation does matches what it is obliged to do. This covers regulatory requirements (privacy, financial, industry-specific), internal policy, contract terms and audit readiness. Contributors read dense source material, map obligations to concrete controls, identify gaps and recommend remediation with a risk rating. Because the output can carry legal weight, the area distinguishes between compliance analysis (mapping obligations and spotting gaps) and formal legal opinion (which needs a qualified lawyer). Tasks in this area demand precision, explicit citations to the source clause, and a clear statement of what was and was not reviewed.",
+      "in_scope": [
+        "Mapping a regulation or policy to internal controls",
+        "Gap assessment with risk ratings",
+        "Policy drafting and review (retention, access, acceptable use)",
+        "Contract clause review against a checklist",
+        "Audit evidence preparation"
+      ],
+      "out_of_scope": [
+        "Formal legal opinions or representation",
+        "Operational process redesign (see operations)",
+        "Technical de-identification implementation (see healthcare / data_analysis)"
+      ],
+      "sub_skills": [
+        { "id": "privacy_regulation", "name": "Privacy regulation", "description": "GDPR, CCPA, HIPAA obligations mapped to data handling practices." },
+        { "id": "policy_review", "name": "Policy drafting & review", "description": "Retention, access-control and acceptable-use policies written to be enforceable." },
+        { "id": "gap_assessment", "name": "Gap assessment", "description": "Compare current controls to requirements and rate each gap by risk." },
+        { "id": "contract_review", "name": "Contract review", "description": "Checklist-based review of liability, data-processing and termination clauses." },
+        { "id": "audit_readiness", "name": "Audit readiness", "description": "Collect and organise evidence so a control can be demonstrated." }
+      ],
+      "level_rubric": {
+        "1": "Can locate and summarise relevant clauses with citations.",
+        "2": "Completes a checklist-based review and flags obvious gaps.",
+        "3": "Performs full gap assessments, drafts policy and prioritises remediation by risk.",
+        "4": "Interprets ambiguous regulation, represents the organisation to auditors and sets compliance strategy."
+      },
+      "typical_deliverables": ["Obligation-to-control matrix", "Gap assessment with risk ratings", "Policy document", "Audit evidence index"],
+      "example_tasks": [
+        "Compare our data-retention policy with GDPR storage-limitation requirements",
+        "Review a vendor contract's data-processing clauses against the checklist",
+        "Assemble evidence for the quarterly access-review control"
+      ],
+      "keywords": ["gdpr", "hipaa", "policy", "regulation", "contract", "audit", "retention", "compliance", "control", "risk", "clause"],
+      "adjacent_areas": ["healthcare", "finance", "operations"]
+    },
+    {
+      "id": "technical_writing",
+      "name": "Technical Writing",
+      "summary": "Turning complex knowledge into clear, accurate documentation for a specific audience.",
+      "description": "Work whose product is words and structure: onboarding guides, how-to articles, requirement documents, release notes, API or process documentation and training material. The craft is audience analysis (who will read this and what do they already know), information architecture, plain language, and verification (every step in a procedure must actually work when followed). Technical writers rely on subject-matter experts for content and are responsible for making it usable. Quality is judged by whether a new reader can complete the target task using only the document. Contributors in this area also review and edit others' drafts for consistency, tone and accuracy.",
+      "in_scope": [
+        "Onboarding guides and how-to documentation",
+        "Requirement and specification documents",
+        "Runbooks and SOP write-ups (with Operations as subject-matter expert)",
+        "Release notes and change summaries",
+        "Editing and style-guide enforcement"
+      ],
+      "out_of_scope": [
+        "Marketing copy and brand campaigns",
+        "Original subject-matter analysis (pair with the relevant domain area)",
+        "Legal drafting (see legal_compliance)"
+      ],
+      "sub_skills": [
+        { "id": "audience_analysis", "name": "Audience analysis", "description": "Identify reader goals, prior knowledge and the minimum they need to succeed." },
+        { "id": "procedure_writing", "name": "Procedure writing", "description": "Numbered, testable steps with expected results and troubleshooting." },
+        { "id": "information_architecture", "name": "Information architecture", "description": "Structure, navigation and cross-linking for findability." },
+        { "id": "editing", "name": "Editing & style", "description": "Consistency, terminology control and plain-language rewriting." },
+        { "id": "requirements_writing", "name": "Requirements writing", "description": "Unambiguous, testable requirements and acceptance criteria." }
+      ],
+      "level_rubric": {
+        "1": "Can proofread and apply a style guide to existing content.",
+        "2": "Writes a clear how-to from SME notes and verifies the steps.",
+        "3": "Designs a documentation set, interviews SMEs and tests docs with real users.",
+        "4": "Defines documentation strategy and standards across teams."
+      },
+      "typical_deliverables": ["User or onboarding guide", "SOP / runbook", "Requirements document", "Release notes"],
+      "example_tasks": [
+        "Write the new-hire onboarding guide for the support team",
+        "Turn the incident review notes into a clean runbook",
+        "Rewrite the data dictionary in plain language"
+      ],
+      "keywords": ["document", "guide", "onboarding", "write", "runbook", "readme", "release notes", "tutorial", "edit", "style"],
+      "adjacent_areas": ["operations", "data_analysis"]
+    }
+  ]
+}

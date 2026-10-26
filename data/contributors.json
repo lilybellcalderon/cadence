@@ -1,0 +1,186 @@
+{
+  "_meta": {
+    "dataset": "contributors",
+    "version": 1,
+    "description": "People who can be assigned tasks. expertise[].area references expertise_areas[].id; expertise[].level is 1-4 (see expertise_areas.levels). 'availability' is the contributor's declared state; current workload is NOT stored here - it is derived at runtime from active assignments (count and sum of estimated_effort_hours) and compared with max_concurrent_tasks and available_hours (hours free for assigned work in the planning window of 10 working days). Both limits are SOFT: exceeding either is logged as a capacity conflict and the task is queued with a warning; it does not make the contributor ineligible. All people are fictional."
+  },
+  "contributors": [
+    {
+      "id": "C-01",
+      "name": "Priya Raman",
+      "title": "Senior Financial Analyst",
+      "email": "priya.raman@example.test",
+      "timezone": "America/New_York",
+      "availability": "available",
+      "max_concurrent_tasks": 3,
+      "available_hours": 50,
+      "years_experience": 11,
+      "bio": "Leads variance analysis and close support for a multi-entity group. Strong on explaining numbers to non-finance audiences.",
+      "expertise": [
+        { "area": "finance", "level": 4, "sub_skills": ["variance_analysis", "month_end_close", "forecasting"] },
+        { "area": "data_analysis", "level": 3, "sub_skills": ["metric_definition", "visualisation"] }
+      ]
+    },
+    {
+      "id": "C-02",
+      "name": "Marcus Webb",
+      "title": "Accounts Payable Specialist",
+      "email": "marcus.webb@example.test",
+      "timezone": "America/Chicago",
+      "availability": "available",
+      "max_concurrent_tasks": 4,
+      "available_hours": 60,
+      "years_experience": 6,
+      "bio": "Runs vendor and bank reconciliations day to day. Methodical, keeps a clean unmatched-item log.",
+      "expertise": [
+        { "area": "finance", "level": 3, "sub_skills": ["reconciliation", "month_end_close"] },
+        { "area": "operations", "level": 2, "sub_skills": ["sla_management"] }
+      ]
+    },
+    {
+      "id": "C-03",
+      "name": "Dr. Elena Vasquez",
+      "title": "Clinical Informatics Lead",
+      "email": "elena.vasquez@example.test",
+      "timezone": "America/Los_Angeles",
+      "availability": "available",
+      "max_concurrent_tasks": 1,
+      "available_hours": 40,
+      "years_experience": 15,
+      "bio": "Former clinician turned informatics lead. Owns terminology mapping and data-quality standards for patient records. The only Expert-level healthcare contributor, so capacity is deliberately small.",
+      "expertise": [
+        { "area": "healthcare", "level": 4, "sub_skills": ["clinical_data_quality", "terminology_mapping", "interoperability", "clinical_workflows"] },
+        { "area": "data_analysis", "level": 2, "sub_skills": ["data_cleaning"] }
+      ]
+    },
+    {
+      "id": "C-04",
+      "name": "Tomasz Kowalski",
+      "title": "Care Operations Coordinator",
+      "email": "tomasz.kowalski@example.test",
+      "timezone": "Europe/Warsaw",
+      "availability": "available",
+      "max_concurrent_tasks": 3,
+      "available_hours": 45,
+      "years_experience": 8,
+      "bio": "Started as a registered nurse, now coordinates patient flow and referral processes. Practical view of intake and discharge handoffs.",
+      "expertise": [
+        { "area": "healthcare", "level": 2, "sub_skills": ["clinical_workflows", "clinical_data_quality"] },
+        { "area": "operations", "level": 3, "sub_skills": ["process_mapping", "root_cause_analysis"] }
+      ]
+    },
+    {
+      "id": "C-05",
+      "name": "Aisha Bello",
+      "title": "Lead Data Analyst",
+      "email": "aisha.bello@example.test",
+      "timezone": "Africa/Lagos",
+      "availability": "available",
+      "max_concurrent_tasks": 3,
+      "available_hours": 45,
+      "years_experience": 9,
+      "bio": "Builds cohort and retention frameworks. Reviews other analysts' work and writes the team's metric-definition standards.",
+      "expertise": [
+        { "area": "data_analysis", "level": 4, "sub_skills": ["cohort_analysis", "metric_definition", "statistics", "data_cleaning"] },
+        { "area": "finance", "level": 2, "sub_skills": ["forecasting"] }
+      ]
+    },
+    {
+      "id": "C-06",
+      "name": "Jun Park",
+      "title": "Business Intelligence Analyst",
+      "email": "jun.park@example.test",
+      "timezone": "Asia/Seoul",
+      "availability": "available",
+      "max_concurrent_tasks": 4,
+      "available_hours": 60,
+      "years_experience": 5,
+      "bio": "Dashboard builder who documents as they go. Comfortable turning a stakeholder request into a metric spec.",
+      "expertise": [
+        { "area": "data_analysis", "level": 3, "sub_skills": ["visualisation", "metric_definition", "data_cleaning"] },
+        { "area": "technical_writing", "level": 2, "sub_skills": ["requirements_writing"] }
+      ]
+    },
+    {
+      "id": "C-07",
+      "name": "Sofia Marino",
+      "title": "Head of Fulfilment Operations",
+      "email": "sofia.marino@example.test",
+      "timezone": "Europe/Rome",
+      "availability": "available",
+      "max_concurrent_tasks": 2,
+      "available_hours": 30,
+      "years_experience": 14,
+      "bio": "Runs warehouse and logistics operations. Leads post-incident reviews and owns the SLA framework for carriers.",
+      "expertise": [
+        { "area": "operations", "level": 4, "sub_skills": ["incident_management", "root_cause_analysis", "sla_management", "capacity_planning"] },
+        { "area": "finance", "level": 2, "sub_skills": ["variance_analysis"] }
+      ]
+    },
+    {
+      "id": "C-08",
+      "name": "Daniel Okafor",
+      "title": "Process Improvement Analyst",
+      "email": "daniel.okafor@example.test",
+      "timezone": "Europe/London",
+      "availability": "available",
+      "max_concurrent_tasks": 3,
+      "available_hours": 50,
+      "years_experience": 7,
+      "bio": "Maps and streamlines processes. Has a working knowledge of policy and audit requirements from supporting internal audits.",
+      "expertise": [
+        { "area": "operations", "level": 3, "sub_skills": ["process_mapping", "capacity_planning"] },
+        { "area": "legal_compliance", "level": 2, "sub_skills": ["audit_readiness", "policy_review"] }
+      ]
+    },
+    {
+      "id": "C-09",
+      "name": "Hannah Lindqvist",
+      "title": "Privacy & Compliance Manager",
+      "email": "hannah.lindqvist@example.test",
+      "timezone": "Europe/Stockholm",
+      "availability": "available",
+      "max_concurrent_tasks": 3,
+      "available_hours": 40,
+      "years_experience": 10,
+      "bio": "Runs the privacy programme. Strong on GDPR and health-data handling; delivers gap assessments with clear risk ratings. Advanced, but not the final authority on novel regulatory questions.",
+      "expertise": [
+        { "area": "legal_compliance", "level": 3, "sub_skills": ["privacy_regulation", "gap_assessment", "policy_review"] },
+        { "area": "healthcare", "level": 2, "sub_skills": ["health_privacy"] }
+      ]
+    },
+    {
+      "id": "C-10",
+      "name": "Rafael Mendes",
+      "title": "Senior Technical Writer",
+      "email": "rafael.mendes@example.test",
+      "timezone": "America/Sao_Paulo",
+      "availability": "available",
+      "max_concurrent_tasks": 4,
+      "available_hours": 60,
+      "years_experience": 12,
+      "bio": "Owns the documentation standards. Interviews subject-matter experts and tests every procedure before publishing.",
+      "expertise": [
+        { "area": "technical_writing", "level": 4, "sub_skills": ["procedure_writing", "information_architecture", "audience_analysis", "editing"] },
+        { "area": "operations", "level": 2, "sub_skills": ["process_mapping"] }
+      ]
+    },
+    {
+      "id": "C-11",
+      "name": "Mei Tanaka",
+      "title": "Compliance Analyst",
+      "email": "mei.tanaka@example.test",
+      "timezone": "Asia/Tokyo",
+      "availability": "away",
+      "away_reason": "Annual leave",
+      "max_concurrent_tasks": 3,
+      "available_hours": 50,
+      "years_experience": 4,
+      "bio": "Checklist-driven contract and policy reviewer who also writes up findings clearly. Currently away, so the router must not offer work to this contributor.",
+      "expertise": [
+        { "area": "legal_compliance", "level": 2, "sub_skills": ["contract_review", "audit_readiness"] },
+        { "area": "technical_writing", "level": 3, "sub_skills": ["requirements_writing", "editing"] }
+      ]
+    }
+  ]
+}

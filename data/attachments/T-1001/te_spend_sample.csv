@@ -1,0 +1,9 @@
+line_id,posting_date,gl_account,cost_centre,vendor,description,amount_usd,budget_phase_quarter
+L-90001,2026-07-08,6110,SALES-EMEA,Skyline Airways,Flight LHR-JFK,1840.00,Q3
+L-90002,2026-07-15,6120,SALES-NA-EAST,Harbor Hotel Group,Hotel 3 nights,1260.50,Q3
+L-90003,2026-08-02,6150,SALES-NA-WEST,Summit Events,Conference registration (Oct event),4800.00,Q4
+L-90004,2026-08-19,6110,SALES-APAC,Pacific Air,Flight SIN-SYD,920.75,Q3
+L-90005,2026-08-21,6160,SALES-NA-EAST,Bistro 22,Client dinner,684.20,Q3
+L-90006,2026-09-03,6150,SALES-EMEA,Summit Events,Booth deposit (Nov event),9500.00,Q4
+L-90007,2026-09-10,6120,SALES-NA-WEST,Harbor Hotel Group,Hotel 5 nights,2105.00,Q3
+L-90008,2026-09-24,6160,SALES-APAC,Lotus Catering,Client reception,3320.00,Q3

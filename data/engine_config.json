@@ -1,0 +1,197 @@
+{
+  "_meta": {
+    "dataset": "engine_config",
+    "version": 2,
+    "description": "Policy the two agents run on. RoutingAgent: matches tasks to contributors, queues on capacity, recovers from decline/failure. TrackingAgent: owns the quality of estimate and status data that RoutingAgent's capacity and queueing decisions depend on. Everything here is data so the operator can tune it without code changes."
+  },
+
+  "agents": {
+    "RoutingAgent": {
+      "trigger_states": ["submitted", "queued", "unmatched", "declined", "failed"],
+      "owns": "routing requests, eligibility, capacity checks, queueing, recovery proposals",
+      "reads_from_tracking": "confirmed estimates, hours_remaining, plan_health, estimate debt"
+    },
+    "TrackingAgent": {
+      "trigger_states": ["accepted", "in_progress"],
+      "also_runs": "periodic sweep over every active assignment (default every 60 simulated seconds in a demo, every 15 minutes in real time)",
+      "owns": "estimates, status check-ins, plan health, data-quality alerts",
+      "contract": "Every accepted assignment gets a contributor-confirmed estimate within the SLA for its priority, and stays fresh afterwards. RoutingAgent never trusts an unconfirmed number without marking it as such."
+    }
+  },
+
+  "routing": {
+    "normal_latency_seconds": [5, 20],
+    "hang_probability": 0.2,
+    "stuck_threshold_seconds_by_priority": { "critical": 25, "high": 30, "medium": 45, "low": 60 },
+    "stuck_note": "Flag only. A stuck request is never failed automatically; the operator cannot know whether it is slow or lost."
+  },
+
+  "estimates": {
+    "model": {
+      "sources": {
+        "requester_provisional": "tasks[].estimated_effort_hours, entered at submission. Treated as a guess.",
+        "contributor_confirmed": "Entered by the assigned contributor, ideally in the same form that accepts the assignment. Revisable; every revision is kept.",
+        "check_in_remaining": "hours_remaining from a status check-in. Most current view of what is left."
+      },
+      "revision_fields": ["assignment_id", "revision", "hours_total", "hours_remaining", "confidence (high|medium|low)", "basis (similar_work|spec_review|rough_guess)", "submitted_by", "submitted_at", "note"],
+      "capacity_precedence": ["latest estimate revision (contributor_confirmed or check_in; most recent wins)", "requester_provisional x unconfirmed_buffer"],
+      "unconfirmed_buffer": 1.25,
+      "rule": "Capacity and conflict checks use the latest estimate revision for the assignment (a check-in is stored as a revision with source=check_in, so the most recent honest number wins), falling back to the requester estimate. Anything derived from requester_provisional is labelled 'unconfirmed' in the conflict warning and the operator question, with the buffer applied."
+    },
+    "capture_at_accept": {
+      "enabled": true,
+      "rule": "The accept action requires hours_total and confidence. A contributor can only move an assignment to in_progress with a confirmed estimate. Assignments created another way (operator manual assign, simulation) start as awaiting_estimate and are chased by the TrackingAgent."
+    },
+    "sla_minutes_by_priority": {
+      "critical": { "estimate_due": 15,  "reminder_every": 10,  "max_reminders": 2 },
+      "high":     { "estimate_due": 30,  "reminder_every": 20,  "max_reminders": 2 },
+      "medium":   { "estimate_due": 120, "reminder_every": 60,  "max_reminders": 2 },
+      "low":      { "estimate_due": 480, "reminder_every": 240, "max_reminders": 2 }
+    },
+    "sla_note": "estimate_due is counted from the moment the assignment is accepted (or manually assigned). Minutes are simulated and compressed by contributor_engagement.status_check.demo_compression_factor.",
+    "chase_ladder": [
+      "t0: assignment accepted or assigned -> TrackingAgent sends an estimate request to the contributor",
+      "t0 + estimate_due: no estimate -> plan_health = overdue_estimate, first reminder",
+      "every reminder_every: reminder until max_reminders reached",
+      "after max_reminders unanswered: raise alert 'estimate_overdue' and operator question 'estimate_missing'"
+    ],
+    "stale_after_minutes_by_priority": { "critical": 360, "high": 720, "medium": 2160, "low": 4320 },
+    "validation_rules": {
+      "variance_flag_pct": 50,
+      "variance_note": "Contributor hours_total differs from the requester estimate by more than this percent -> 'estimate_variance' alert + question (the task may be mis-scoped).",
+      "remaining_increase_flag_pct": 25,
+      "remaining_increase_note": "hours_remaining rises by more than this percent between revisions -> 'estimate_variance' (scope growth).",
+      "working_hours_per_day": 8,
+      "remaining_exceeds_time_to_due": "hours_remaining > working hours left before due date (elapsed hours x working_hours_per_day / 24) -> 'due_date_at_risk'. Due dates are real time and are NOT compressed by the demo factor."
+    },
+    "plan_health_values": {
+      "complete": "Confirmed estimate present, fresh, within validation rules.",
+      "awaiting_estimate": "Accepted/assigned, still inside estimate_due.",
+      "overdue_estimate": "Past estimate_due with no confirmed estimate.",
+      "stale": "Estimate or status older than stale_after_minutes.",
+      "at_risk": "Contributor reported at_risk/blocked, or hours_remaining exceeds time to due."
+    },
+    "estimate_debt": {
+      "max_overdue_estimates_per_contributor": 1,
+      "rule": "A contributor with more than this many assignments in overdue_estimate is treated by RoutingAgent as capacity-unknown: other eligible contributors are preferred; if they are the only option, the task is queued with an 'estimate debt' warning (capacity_conflict reason) instead of being assigned."
+    },
+    "daily_report_metrics": [
+      "estimate_coverage_pct: confirmed estimates within SLA / accepted assignments",
+      "median_time_to_estimate_minutes by priority",
+      "assignments currently overdue_estimate or stale",
+      "contributors with estimate debt",
+      "capacity decisions made on unconfirmed estimates"
+    ]
+  },
+
+  "alerts": {
+    "severity_rank": { "info": 0, "low": 1, "normal": 2, "high": 3, "critical": 4 },
+    "priority_rank": { "low": 1, "medium": 2, "high": 3, "critical": 4 },
+    "rule": "severity = clamp(priority_rank(task.priority) + triggers[trigger].adjust, floor, 4), where floor = 1 (low) if the trigger needs_action, else 0 (info). A decision the operator must make can therefore never be log-only. 'info' alerts are log-only and appear in the daily report.",
+    "triggers": {
+      "stuck_request":             { "agent": "RoutingAgent",  "adjust": 0,  "needs_action": true,  "question": "stuck_request",       "description": "Routing request pending longer than the stuck threshold for its priority." },
+      "no_match":                  { "agent": "RoutingAgent",  "adjust": 0,  "needs_action": true,  "question": "no_match",            "description": "Engine reported no eligible contributor." },
+      "capacity_conflict":         { "agent": "RoutingAgent",  "adjust": -1, "needs_action": true,  "question": "capacity_conflict",   "description": "Every eligible contributor would exceed task-count or hours capacity, or has estimate debt; task queued." },
+      "priority_contention":       { "agent": "RoutingAgent",  "adjust": 0,  "needs_action": true,  "question": "priority_contention", "description": "Two or more queued tasks compete for the same contributor's remaining capacity." },
+      "request_declined":          { "agent": "RoutingAgent",  "adjust": 0,  "needs_action": true,  "question": "recovery",            "description": "Contributor declined the assignment." },
+      "assignment_failed":         { "agent": "RoutingAgent",  "adjust": 1,  "needs_action": true,  "question": "recovery",            "description": "Assignment broke before work began." },
+      "estimate_overdue":          { "agent": "TrackingAgent", "adjust": 0,  "needs_action": true,  "question": "estimate_missing",    "description": "No confirmed estimate after the SLA and all reminders." },
+      "estimate_stale":            { "agent": "TrackingAgent", "adjust": -1, "needs_action": true,  "question": "estimate_missing",    "description": "Estimate or status not refreshed within the stale window." },
+      "estimate_variance":         { "agent": "TrackingAgent", "adjust": -1, "needs_action": true,  "question": "estimate_variance",   "description": "Contributor estimate differs sharply from the requester's, or remaining hours grew sharply." },
+      "estimate_debt":             { "agent": "TrackingAgent", "adjust": -1, "needs_action": true,  "question": "estimate_missing",    "description": "Contributor has more overdue estimates than allowed; RoutingAgent will avoid assigning more." },
+      "status_no_response":        { "agent": "TrackingAgent", "adjust": 0,  "needs_action": true,  "question": "contributor_silent",  "description": "Contributor missed the configured number of status check-ins." },
+      "status_at_risk":            { "agent": "TrackingAgent", "adjust": -1, "needs_action": true,  "question": "at_risk",             "description": "Contributor reports the task may miss its due date." },
+      "status_blocked":            { "agent": "TrackingAgent", "adjust": 0,  "needs_action": true,  "question": "at_risk",             "description": "Contributor reports being blocked." },
+      "due_date_at_risk":          { "agent": "TrackingAgent", "adjust": 0,  "needs_action": true,  "question": "at_risk",             "description": "Remaining hours exceed hours left before the due date." },
+      "late_return_superseded":    { "agent": "RoutingAgent",  "adjust": -4, "needs_action": false, "question": null,                  "description": "A routing result arrived after the operator intervened; recorded and ignored." }
+    },
+    "delivery_by_severity": {
+      "critical": { "channels": ["in_app_banner", "outbox"], "re_alert_after_minutes": 5,    "max_re_alerts": 3 },
+      "high":     { "channels": ["in_app_banner", "outbox"], "re_alert_after_minutes": 15,   "max_re_alerts": 2 },
+      "normal":   { "channels": ["in_app"],                  "re_alert_after_minutes": 60,   "max_re_alerts": 1 },
+      "low":      { "channels": ["in_app_digest"],           "re_alert_after_minutes": null, "max_re_alerts": 0 },
+      "info":     { "channels": ["log_only"],                "re_alert_after_minutes": null, "max_re_alerts": 0 }
+    },
+    "channel_notes": {
+      "in_app_banner": "Pinned banner + badge in the operator inbox until acknowledged.",
+      "in_app": "Badge and entry in the operator inbox.",
+      "in_app_digest": "Grouped into an hourly digest entry, no banner.",
+      "outbox": "Simulated external delivery (email/chat): written to an outbox table and shown in the UI so the demo needs no real service. Swappable for a real notifier later.",
+      "log_only": "Event log and daily report only."
+    },
+    "escalation": "An unacknowledged alert re-alerts per delivery_by_severity and is raised one severity level on the final re-alert."
+  },
+
+  "operator_questions": {
+    "principles": [
+      "The agent asks, the operator decides: no question is ever auto-answered with a state-changing action.",
+      "Every question states what the agent knows (task, eligible set, load, elapsed time, estimate source and confidence) and offers explicit options with consequences.",
+      "If unanswered by the timeout, the agent applies only the 'safe_default' (never reassign/cancel), re-alerts, and keeps the question open.",
+      "Questions and answers are events (who, when, option, free-text note) and persist across restarts."
+    ],
+    "answer_timeout_minutes_by_priority": { "critical": 5, "high": 15, "medium": 60, "low": 240 },
+    "types": {
+      "stuck_request": {
+        "prompt": "Routing for {task} has been pending {elapsed}s with no response. What should I do?",
+        "options": ["keep_waiting", "resubmit_routing", "assign_manually", "cancel_task"],
+        "safe_default": "keep_waiting"
+      },
+      "no_match": {
+        "prompt": "No contributor matches {task} (area {area}, min level {min_level}). How do you want to proceed?",
+        "options": ["lower_min_level_with_expert_review", "widen_to_adjacent_area", "split_task", "hold_for_availability", "cancel_task"],
+        "safe_default": "hold_for_availability"
+      },
+      "capacity_conflict": {
+        "prompt": "{contributor} would be over capacity ({reasons}; load basis: {estimate_basis}) if given {task}. The task is queued. Options?",
+        "options": ["wait_for_capacity", "assign_anyway", "next_eligible_contributor", "raise_contributor_hours", "request_estimates_first", "split_task"],
+        "safe_default": "wait_for_capacity"
+      },
+      "priority_contention": {
+        "prompt": "{tasks} are competing for {contributor}'s remaining {hours}h. Which goes first?",
+        "options": ["by_priority", "by_due_date", "pick_explicitly"],
+        "safe_default": "by_priority"
+      },
+      "recovery": {
+        "prompt": "{task} was {outcome} by {contributor} ({reason}). What next?",
+        "options": ["reroute_excluding_contributor", "offer_to_next_eligible", "assign_manually", "contact_contributor", "cancel_task"],
+        "safe_default": "reroute_excluding_contributor"
+      },
+      "estimate_missing": {
+        "prompt": "{contributor} has not provided a confirmed estimate for {task} ({issue}: {minutes_overdue} min past the SLA, {reminders} reminders sent). Planning currently uses {fallback_hours}h from {fallback_source}. What now?",
+        "options": ["send_reminder", "contact_contributor", "enter_estimate_on_their_behalf", "use_requester_estimate_provisionally", "reassign_task"],
+        "safe_default": "send_reminder"
+      },
+      "estimate_variance": {
+        "prompt": "{contributor} estimates {task} at {contributor_hours}h versus {requester_hours}h from the requester ({delta_pct}%). Which is right?",
+        "options": ["request_clarification", "accept_contributor_estimate", "ask_requester_to_rescope", "split_task", "request_second_opinion"],
+        "safe_default": "request_clarification"
+      },
+      "contributor_silent": {
+        "prompt": "{contributor} has not answered {missed} status check-ins on {task}. How should I proceed?",
+        "options": ["send_reminder", "escalate_to_manager", "reassign_task", "keep_waiting"],
+        "safe_default": "send_reminder"
+      },
+      "at_risk": {
+        "prompt": "{task} is {state} ({detail}). Should I change the plan?",
+        "options": ["extend_due_date", "add_second_contributor_for_help", "reassign_task", "accept_risk", "contact_contributor"],
+        "safe_default": "accept_risk"
+      }
+    }
+  },
+
+  "contributor_engagement": {
+    "status_check": {
+      "owner_agent": "TrackingAgent",
+      "applies_to_states": ["accepted", "in_progress"],
+      "cadence_minutes_by_priority": { "critical": 240, "high": 480, "medium": 1440, "low": 2880 },
+      "demo_compression_factor": 60,
+      "demo_compression_note": "Cadences and estimate SLAs are in simulated minutes. A factor of 60 means 1 simulated hour passes per real minute, so check-ins are visible in a demo. Routing latency (5-20s) is NOT compressed.",
+      "reply_window_minutes": 60,
+      "missed_checkins_before_alert": 2,
+      "questions_asked": ["progress_percent", "hours_remaining", "status (on_track | at_risk | blocked)", "blocker_or_note"],
+      "effect_on_planning": "hours_remaining is the top source in estimates.model.capacity_precedence, so capacity and capacity_conflict checks use the latest honest number.",
+      "status_values": ["on_track", "at_risk", "blocked", "no_response"]
+    },
+    "contributor_inbox": "Simulated: the UI exposes a contributor view where the demo user can accept with an estimate, respond to estimate requests and respond to check-ins. Seed tasks can script replies with tasks[].sim.estimate and tasks[].sim.status_check."
+  }
+}

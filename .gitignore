@@ -1,0 +1,9 @@
+# runtime data: the demo database and uploaded attachments are recreated by `python -m app.seed --reset`
+var/
+*.db
+*.db-wal
+*.db-shm
+
+# Python
+__pycache__/
+*.pyc
