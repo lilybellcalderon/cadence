@@ -1,5 +1,5 @@
 Repository: https://github.com/lilybellcalderon/cadence
-Walkthrough video: <TODO: Loom link, 10 minutes max>
+Walkthrough video: https://www.loom.com/share/5eb72f14785c4c2d97ebdbcba97e1150
 
 Agent setup:
 Claude Code (Claude Sonnet 5.5) in the Claude desktop app, working inside my workspace, using the same pattern as my Symphony agentic-SDLC template: one agent per stage, a defined hand-off between stages, and me as the human gate between them. The work went in this order, with me deciding at each gate before the next stage started:
